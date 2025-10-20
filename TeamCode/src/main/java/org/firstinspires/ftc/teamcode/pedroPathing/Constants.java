@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
-// Random Comment Hello
+// Random Comment
 //
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
