@@ -8,80 +8,174 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import android.graphics.Color;
-
 import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 
 public class Spindexer {
+    public DcMotor spindexerMotor = null;
+    public ColorSensor colorSensor = null;
 
-public DcMotorEx spindexerMotor = null;
-    int ticks = 10; // <-- Fix this too
-    // pid
-    ElapsedTime dt = new ElapsedTime();
-    double kp,kd = 0;
-    double currentPIDOutput = 0;
-    double lastError = 0;
+    /* State Machine for Spindexer control
+     * State machine to manage different behaviors */
 
-    double spindexerSpeed = 0.1;
+    private enum SpindexerState {
+        Holding_Position, // Using PID to hod a specific encoder position
+        Searching_For_Color, // Rotating while looking for color
+        Manual_Control, // Being controlled by raw power input
+    }
+
+    private SpindexerState currentState = SpindexerState.Holding_Position;
+
+    // PID Control Variables
+    private final ElapsedTime PIDTimer = new ElapsedTime();
+    /* Things to do with Jacob
+     * Tune PID coefficients for robot efficiency */
+    public double kp = 0.0;
+    public double ki = 0.0;
+    public double kd = 0.0;
+
+    private double integralSum = 0;
+    private double lastError = 0;
+    private int targetPosition = 0; // Encoder tick we want motor to hold.
+
+    // Color search variables
+    private double searchPower = 0.3;
+    /* To do with Jacob
+     * Tune these HSV values for printing sensor output to telemetry
+     * These are example values*/
+    private float targetHue = 270; // Hue range for purple
+    private float hueRange = 25; // Random number for hue range from google
+
+    /*
+     * Initialize all spindexer hardware to set motor modes.*/
+
+    public void init(HardwareMap hwMap) {
+        spindexerMotor = hwMap.get(DcMotor.class, "spindexerMotor");
+        spindexerMotor.setDirection(DcMotor.Direction.FORWARD); //Idk if forward works or not. Can reverse if needed
+        spindexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // To use our own encoder
+        spindexerMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER); // Calculate power ourselves
+        spindexerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        // Initialize color sensor
+        colorSensor = hwMap.get(ColorSensor.class, "colorSensor");
+
+        // Sart in a holding position 0
+        currentState = SpindexerState.Holding_Position;
+        targetPosition = 0; // We can fix this I think.
+    }
+
+    public void update() {
+        switch (currentState) {
+            case Searching_For_Color:
+
+                // Set motor to spin slowly
+                spindexerMotor.setPower(searchPower);
+
+                // Check if the sensor sees the right color
+                if (isTargetColorDetected()) {
+                    // Color found!
+                    // Get the current position which is going to be new target.
+                    int foundPosition = spindexerMotor.getCurrentPosition();
+
+                    // Switch to Holding state to lock onto this position
+                    holdPosition(foundPosition);
+                }
+                break;
+
+            case Holding_Position:
+                // Run one iteration of the PID controller to have target position
+                double powerToApply = runPID();
+                targetPosition = spindexerMotor.getCurrentPosition();
+
+                spindexerMotor.setPower(powerToApply);
+                break;
+
+            case Manual_Control:
+                // In this state the motor won't do anything until a command is given.
+                // The power is set directly by the setPower() method.
+                break;
+        }
+    }
 
 
-    // not using i term
-    private double PID(int target, int setpoint)
-    {
-        double error = target - setpoint;
-        double derivative = (error - lastError)/dt.milliseconds();
+    /* Puts the spindexer into Searching_For_Color mode.
+     * Call this when you press the button to find a specific ball.
+     * @param power the speed to spin while searching. Can be negative to search backwards. */
 
-        dt.reset();
+    public void searchForColor(double power) {
+        this.searchPower = power;
+        currentState = SpindexerState.Searching_For_Color;
+    }
+
+    /* Sets a new target position and engages the PID controller to hold it.*/
+    private void holdPosition(int position) {
+        targetPosition = position;
+        // Reset PID variables for a clean start at a new target
+        integralSum = 0;
+        lastError = 0;
+        PIDTimer.reset();
+        currentState = SpindexerState.Holding_Position;
+    }
+
+    private double runPID() {
+        int currentPosition = spindexerMotor.getCurrentPosition();
+        double error = targetPosition - currentPosition;
+        double derivative = (PIDTimer.seconds() > 0) ? (error - lastError) / PIDTimer.seconds() : 0;
+        integralSum += error * PIDTimer.seconds();
 
         lastError = error;
-        double output = error * kp + derivative * kd;
-        return output;
+        PIDTimer.reset();
+
+        double power = (kp * error) + (ki * integralSum) + (kd * derivative);
+        return power;
     }
 
-    // ... other hardware ...
-    public void init(HardwareMap hwMap) {
-
-        // Initialize the motor
-        spindexerMotor = hwMap.get(DcMotorEx.class, "spindexerMotor");
-
-        // 1. Stop and reset the encoder to 0
-        spindexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        // 2. Set the motor to run to a target position
-        // It will now only move when given a target.
-        spindexerMotor.setTargetPosition(ticks);
-        spindexerMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    /* Checks if the color sensor currently sees the desired color.
+     * Return true if the color is within the target hue range.*/
+    private boolean isTargetColorDetected() {
+        // Convert RGB sensor values to HSV color model.
+        // Hue is a good reliable metric for color identification under varying light according to google.
 
 
-        /* Can I use an if statement to call a loop to do this?*/
-        // 3. Set the motor to brake when it has zero power
-        // This helps it hold its position firmly.
-        spindexerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        spindexerMotor.setTargetPosition(67); // <-- Fix this later
+        float[] hsvValues = {0F, 0F, 0F};
+        android.graphics.Color.RGBToHSV(
+                (int) (colorSensor.red()),
+                (int) (colorSensor.green()),
+                (int) (colorSensor.blue()),
+                hsvValues
+        );
 
+        float hue = hsvValues[0]; // Hue is the first value, from 0 to 360.
+
+        // Check if the detected hue is within our range.
+        return (Math.abs(hue - targetHue) < hueRange);
     }
 
-    private void SetTarget()
-    {
-        spindexerMotor.setPower(currentPIDOutput * spindexerSpeed);
+    /* Allows for direct manual control of the spindexer, bypassing PID and color search
+     * @Param power to apply (-1.0 to 1.0) */
+    public void setManualPower(double power) {
+        currentState = SpindexerState.Manual_Control;
+        spindexerMotor.setPower(power);
     }
 
-    public void SetSpindexerPower(double input)
-    {
-        spindexerMotor.setPower(input);
+    public String getCurrentState() {
+        return currentState.toString();
     }
 
-    private int[] GetColorOutput()
-    {
-        // check out java.awt.color
-        // search: java color rgb to hsv
-        Color colVal = new Color();
-//        colVal.
+    public int getTargetPosition() {
+        return targetPosition;
+    }
 
-//        return rgbVals;
-        return null;
+    public float[] getHsvValues() {
+        float[] hsvValues = {0F, 0F, 0F};
+        android.graphics.Color.RGBToHSV(
+                (int) (colorSensor.red() * 255),
+                (int) (colorSensor.green() * 255),
+                (int) (colorSensor.blue() * 255),
+                hsvValues
+        );
+        return hsvValues;
     }
 }
 

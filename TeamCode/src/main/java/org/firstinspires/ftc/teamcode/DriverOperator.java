@@ -4,10 +4,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 @TeleOp
 public class DriverOperator extends LinearOpMode{
     FTCDriveTrain drivetrain = new FTCDriveTrain();
+    Spindexer spindexer = new Spindexer();
 
     @Override
     public void runOpMode() {
         drivetrain.init(hardwareMap);
+        spindexer.init(hardwareMap);
 
         waitForStart();
         while (opModeIsActive())
@@ -19,6 +21,7 @@ public class DriverOperator extends LinearOpMode{
 
             drivetrain.Translate(x,y,rx,options);
 
+            spindexer.update();
             // drivetrain translate stufffff
         }
     }
