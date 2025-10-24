@@ -17,10 +17,10 @@ public class IntakeCode extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            if (gamepad2.a) {
+            if (gamepad2.y) {
                 // Run intake forward
                 intake1.setPower(1.0);
-            } else if (gamepad2.b) {
+            } else if (gamepad2.x) {
                 // Run intake backward
                 intake1.setPower(-1.0);
             } else {
