@@ -29,7 +29,11 @@ public class JacobSpindexer
     double currentPIDOutput = 0;
     double lastError = 0;
 
+    int huePurpleMin = 0;
+    int saturationPurpleMin = 0;
+    int valuePurpleMin = 0;
 
+    int huePurpleMax = 0;
 
     // speed config
     double spindexerSpeed = 0.1;
