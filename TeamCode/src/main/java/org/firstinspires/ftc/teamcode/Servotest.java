@@ -24,8 +24,8 @@ public class Servotest extends LinearOpMode {
         frontRightServo = hardwareMap.get(CRServo.class, "servo3");
         backRightServo = hardwareMap.get(CRServo.class, "servo4");
 
-        frontRightServo.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRightServo.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontLeftServo.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeftServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Retrieve the IMU from the hardware map
         IMU imu = hardwareMap.get(IMU.class, "imu");
