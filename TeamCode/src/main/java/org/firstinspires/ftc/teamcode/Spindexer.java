@@ -15,6 +15,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Spindexer {
     public DcMotor spindexerMotor = null;
+
+    // Color search variables
     public ColorSensor colorSensor = null;
 
     public Servo popupServo =  null;
@@ -52,8 +54,12 @@ public class Spindexer {
     /* To do with Jacob
      * Tune these HSV values for printing sensor output to telemetry
      * These are example values*/
-    private float targetHue = 270; // Hue range for purple
+    private static final float PURPLE_HUE = 270; // Hue range for purple
+    private static final float GREEN_HUE = 120; // Hue range for green
     private float hueRange = 25; // Random number for hue range from google
+
+    // Variable to hold the hue we are currently looking for.
+    private float targetHue = PURPLE_HUE;
 
     /*
      * Initialize all spindexer hardware to set motor modes.*/
@@ -114,9 +120,16 @@ public class Spindexer {
      * Call this when you press the button to find a specific ball.
      * @param power the speed to spin while searching. Can be negative to search backwards. */
 
-    public void searchForColor(double power) {
+    public void searchForPurpleBall(double power) {
+        this.targetHue = PURPLE_HUE;
         this.searchPower = power;
-        currentState = SpindexerState.Searching_For_Color;
+        this.currentState = SpindexerState.Searching_For_Color;
+    }
+
+    public void searchForGreenBall(double power) {
+        this.targetHue = GREEN_HUE;
+        this.searchPower = power;
+        this.currentState = SpindexerState.Searching_For_Color;
     }
 
     /* Sets a new target position and engages the PID controller to hold it.*/

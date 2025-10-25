@@ -6,25 +6,38 @@ public class DriverOperator extends LinearOpMode{
     FTCDriveTrain drivetrain = new FTCDriveTrain();
     Spindexer spindexer = new Spindexer();
 
+    private boolean yButton2Pressed = false;
+    private boolean xButton2Pressed = false;
+
     @Override
     public void runOpMode() {
         drivetrain.init(hardwareMap);
         spindexer.init(hardwareMap);
 
+        // I wanna know if initialization is complete.
+        telemetry.addData("Status", "Robot is Initialized");
+        telemetry.update();
+
         waitForStart();
         while (opModeIsActive())
         {
+            // Driver controls
             double y = -gamepad1.left_stick_y;
             double x = gamepad1.left_stick_x;
             double rx = gamepad1.right_stick_x;
             boolean options = gamepad1.options;
 
+            // Shooter controls
             boolean dpadUp2 = gamepad2.dpad_up;
             boolean dpadDown2 = gamepad2.dpad_down;
             double leftStick2Y = gamepad2.left_stick_y;
+            boolean y2 = gamepad2.y;
+            boolean x2 = gamepad2.x;
 
+            // Drivetrain
             drivetrain.Translate(x,y,rx,options);
 
+            // Spindexer manual servo
             if (dpadUp2)
             {
                 spindexer.nudgeServoUp();
@@ -33,14 +46,38 @@ public class DriverOperator extends LinearOpMode{
             {
                 spindexer.nudgeServoDown();
             }
-            // drivetrain translate stufffff
 
-            spindexer.setManualPower(leftStick2Y);
+            // Spindexer color search (If button pressed search for purple)
+            if (y2 && !yButton2Pressed) {
+                // When Y is pressed for the first time call searchForColor
+                // The spindexer class will handle spinning, stopping, and raising the servo
+                spindexer.searchForPurpleBall(0.4); // Just 40% power
+            }
 
+            yButton2Pressed =  y2;
 
+            // Seach for Green ball with the X Button
+            if (x2 && !xButton2Pressed) {
+                spindexer.searchForGreenBall(0.4);
+            }
 
+            xButton2Pressed = x2;
+
+            // Spindexer manual motor override
+            // So operator can manually spin the spindexer with a left stick
+
+            if (Math.abs(leftStick2Y) > 0.1) {
+                spindexer.setManualPower(leftStick2Y);
+            }
 
             spindexer.update();
+
+            // Telemetry for debugging
+            telemetry.addData("Spindexer State", spindexer.getCurrentState());
+            telemetry.addData("Servo Position", "%.2f", spindexer.getServoPosition());
+            float[] hsv = spindexer.getHsvValues();
+            telemetry.addData("Hue", "%.1f", hsv[0]);
+            telemetry.update();
         }
     }
 }
