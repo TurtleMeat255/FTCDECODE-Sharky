@@ -11,10 +11,18 @@ import android.graphics.Color;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
+import com.qualcomm.robotcore.hardware.Servo;
 
 public class Spindexer {
     public DcMotor spindexerMotor = null;
     public ColorSensor colorSensor = null;
+
+    public Servo popupServo =  null;
+
+    private static final double SERVO_INCREMENT = 0.025; // How much to move the servo on each press
+    private static final double SERVO_MAX_POSITION = 0.1; // The highest the servo can go
+    private static final double SERVO_MIN_POSITION = 0.0; // The lowest the servo can go.
+    private double currentServoPosition;
 
     /* State Machine for Spindexer control
      * State machine to manage different behaviors */
@@ -31,7 +39,7 @@ public class Spindexer {
     private final ElapsedTime PIDTimer = new ElapsedTime();
     /* Things to do with Jacob
      * Tune PID coefficients for robot efficiency */
-    public double kp = 0.0;
+    public double kp = 0.1;
     public double ki = 0.0;
     public double kd = 0.0;
 
@@ -54,8 +62,12 @@ public class Spindexer {
         spindexerMotor = hwMap.get(DcMotor.class, "spindexerMotor");
         spindexerMotor.setDirection(DcMotor.Direction.FORWARD); //Idk if forward works or not. Can reverse if needed
         spindexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // To use our own encoder
-        spindexerMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER); // Calculate power ourselves
+        spindexerMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Calculate power ourselves
         spindexerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        popupServo = hwMap.get(Servo.class, "popupServo");
+        currentServoPosition = SERVO_MIN_POSITION;
+        popupServo.setPosition(currentServoPosition);
 
         // Initialize color sensor
         colorSensor = hwMap.get(ColorSensor.class, "colorSensor");
@@ -86,7 +98,6 @@ public class Spindexer {
             case Holding_Position:
                 // Run one iteration of the PID controller to have target position
                 double powerToApply = runPID();
-                targetPosition = spindexerMotor.getCurrentPosition();
 
                 spindexerMotor.setPower(powerToApply);
                 break;
@@ -140,9 +151,9 @@ public class Spindexer {
 
         float[] hsvValues = {0F, 0F, 0F};
         android.graphics.Color.RGBToHSV(
-                (int) (colorSensor.red()),
-                (int) (colorSensor.green()),
-                (int) (colorSensor.blue()),
+                (int) (colorSensor.red() * 255),
+                (int) (colorSensor.green() * 255),
+                (int) (colorSensor.blue() * 255),
                 hsvValues
         );
 
@@ -157,6 +168,32 @@ public class Spindexer {
     public void setManualPower(double power) {
         currentState = SpindexerState.Manual_Control;
         spindexerMotor.setPower(power);
+    }
+
+    // Add manual SERVO control.
+
+    public void nudgeServoUp() {
+        // Add the increment to the current position
+        currentServoPosition += SERVO_INCREMENT;
+
+        // Math.min to make sure the position never goes above the max limit
+        currentServoPosition = Math.min(currentServoPosition, SERVO_MAX_POSITION);
+
+        popupServo.setPosition(currentServoPosition);
+    }
+
+    public void nudgeServoDown() {
+        // Add the increment to the current position
+        currentServoPosition -= SERVO_INCREMENT;
+
+        // Math.min to make sure the position never goes above the max limit
+        currentServoPosition = Math.max(currentServoPosition, SERVO_MIN_POSITION);
+
+        popupServo.setPosition(currentServoPosition);
+    }
+
+    public double getServoPosition() {
+        return this.currentServoPosition;
     }
 
     public String getCurrentState() {
