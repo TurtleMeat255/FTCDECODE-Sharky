@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class DriverOperator extends LinearOpMode{
     FTCDriveTrain drivetrain = new FTCDriveTrain();
     Spindexer spindexer = new Spindexer();
+    Shooter shooter = new Shooter();
+
 
     private boolean yButton2Pressed = false;
     private boolean xButton2Pressed = false;
@@ -13,6 +15,7 @@ public class DriverOperator extends LinearOpMode{
     public void runOpMode() {
         drivetrain.init(hardwareMap);
         spindexer.init(hardwareMap);
+        shooter.init(hardwareMap);
 
         // I wanna know if initialization is complete.
         telemetry.addData("Status", "Robot is Initialized");
@@ -72,12 +75,29 @@ public class DriverOperator extends LinearOpMode{
 
             spindexer.update();
 
+            // Shoot stuff ahhh code.
+            if (gamepad2.a) {
+                shooter.ShootStuff(true);
+            }
+            else {
+                shooter.ShootStuff(false);
+            }
+
+            // Hood stuff ahhh code.
+            if (gamepad2.b) {
+                shooter.HoodStuff(true, false);
+            }
+
+            else {
+                shooter.HoodStuff(false, true);
+            }
+        }
+
             // Telemetry for debugging
             telemetry.addData("Spindexer State", spindexer.getCurrentState());
             telemetry.addData("Servo Position", "%.2f", spindexer.getServoPosition());
             float[] hsv = spindexer.getHsvValues();
             telemetry.addData("Hue", "%.1f", hsv[0]);
             telemetry.update();
-        }
     }
 }
