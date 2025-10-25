@@ -5,12 +5,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class DriverOperator extends LinearOpMode{
     FTCDriveTrain drivetrain = new FTCDriveTrain();
     Spindexer spindexer = new Spindexer();
-
+    Shooter shooter = new Shooter();
     @Override
     public void runOpMode() {
         drivetrain.init(hardwareMap);
         spindexer.init(hardwareMap);
-
+        shooter.init(hardwareMap);
         waitForStart();
         while (opModeIsActive())
         {
@@ -18,12 +18,16 @@ public class DriverOperator extends LinearOpMode{
             double x = gamepad1.left_stick_x;
             double rx = gamepad1.right_stick_x;
             boolean options = gamepad1.options;
-
+            boolean shooterButton = gamepad2.a;
+            boolean UpButton = gamepad2.x;
+            boolean DownButton = gamepad2.y;
             boolean dpadUp2 = gamepad2.dpad_up;
             boolean dpadDown2 = gamepad2.dpad_down;
             double leftStick2Y = gamepad2.left_stick_y;
 
             drivetrain.Translate(x,y,rx,options);
+            shooter.ShootStuff(shooterButton);
+            shooter.HoodStuff(UpButton, DownButton);
 
             if (dpadUp2)
             {
