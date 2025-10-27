@@ -36,9 +36,11 @@ public class DriverOperator extends LinearOpMode{
             double leftStick2Y = gamepad2.left_stick_y;
             boolean y2 = gamepad2.y;
             boolean x2 = gamepad2.x;
-
+            boolean Hoodup = gamepad2.right_bumper;
+            boolean Hooddown = gamepad2.left_bumper;
             // Drivetrain
             drivetrain.Translate(x,y,rx,options);
+            shooter.HoodStuff(Hoodup, Hooddown);
 
             // Spindexer manual servo
             if (dpadUp2)
@@ -84,13 +86,7 @@ public class DriverOperator extends LinearOpMode{
             }
 
             // Hood stuff ahhh code.
-            if (gamepad2.b) {
-                shooter.HoodStuff(true, false);
-            }
 
-            else {
-                shooter.HoodStuff(false, true);
-            }
         }
 
             // Telemetry for debugging

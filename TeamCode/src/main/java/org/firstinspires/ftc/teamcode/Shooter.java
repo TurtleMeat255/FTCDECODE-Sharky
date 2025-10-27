@@ -29,11 +29,11 @@ public void init(HardwareMap hwMap) {
         }
     }
     public void HoodStuff(boolean HoodUp, boolean HoodDown) {
-    if (HoodUp && !LastUp && position <= 0.675) {
-        position += 0.225;
+    if (HoodUp && !LastUp && position <= 0.615) {
+        position += 0.205;
     }
-    if (HoodDown && !LastDown && position >= 0.225) {
-        position -= 0.225;
+    if (HoodDown && !LastDown && position >= 0.205) {
+        position -= 0.205;
     }
 
 
