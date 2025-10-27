@@ -35,7 +35,7 @@ public void init(HardwareMap hwMap) {
     if (HoodDown && !LastDown && position >= 0.2) {
         position -= 0.2;
     }
-
+    // Random comment
 
     LastDown = HoodDown;
     LastUp = HoodUp;
