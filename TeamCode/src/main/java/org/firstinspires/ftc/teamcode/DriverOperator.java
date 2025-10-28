@@ -39,7 +39,7 @@ public class DriverOperator extends LinearOpMode{
             boolean Hoodup = gamepad2.right_bumper;
             boolean Hooddown = gamepad2.left_bumper;
             // Drivetrain
-//            drivetrain.Translate(x,y,rx,options);
+            drivetrain.Translate(x,y,rx,options);
             shooter.HoodStuff(Hoodup, Hooddown);
 
 
