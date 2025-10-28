@@ -39,8 +39,9 @@ public class DriverOperator extends LinearOpMode{
             boolean Hoodup = gamepad2.right_bumper;
             boolean Hooddown = gamepad2.left_bumper;
             // Drivetrain
-            drivetrain.Translate(x,y,rx,options);
+//            drivetrain.Translate(x,y,rx,options);
             shooter.HoodStuff(Hoodup, Hooddown);
+
 
             // Spindexer manual servo
             if (dpadUp2)
@@ -77,6 +78,7 @@ public class DriverOperator extends LinearOpMode{
 
             spindexer.update();
 
+
             // Shoot stuff ahhh code.
             if (gamepad2.a) {
                 shooter.ShootStuff(true);
@@ -89,11 +91,15 @@ public class DriverOperator extends LinearOpMode{
 
         }
 
+
             // Telemetry for debugging
             telemetry.addData("Spindexer State", spindexer.getCurrentState());
             telemetry.addData("Servo Position", "%.2f", spindexer.getServoPosition());
             float[] hsv = spindexer.getHsvValues();
             telemetry.addData("Hue", "%.1f", hsv[0]);
+            telemetry.addData("ServoState", spindexer.getServoPosition());
             telemetry.update();
+
+
     }
 }

@@ -20,10 +20,10 @@ public class FTCDriveTrain
     public void init(HardwareMap hwMap) {
         // Declare our motors
         // Make sure your ID's match your configuration
-        frontLeftMotor = hwMap.get(DcMotor.class, "frontLeftMotor");
-        backLeftMotor = hwMap.get(DcMotor.class, "backLeftMotor");
-        frontRightMotor = hwMap.get(DcMotor.class, "frontRightMotor");
-        backRightMotor = hwMap.get(DcMotor.class, "backRightMotor");
+        frontLeftMotor = hwMap.get(DcMotor.class, "frontLeftMotor"); // Port 0
+        backLeftMotor = hwMap.get(DcMotor.class, "backLeftMotor"); // Port 1
+        frontRightMotor = hwMap.get(DcMotor.class, "frontRightMotor"); // Port 2
+        backRightMotor = hwMap.get(DcMotor.class, "backRightMotor"); // Port 3
 
 
         // Reverse the right side motors. This may be wrong for your setup.

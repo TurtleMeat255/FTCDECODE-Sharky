@@ -33,7 +33,8 @@ public class Spindexer {
         Holding_Position, // Using PID to hod a specific encoder position
         Searching_For_Color, // Rotating while looking for color
         Manual_Control, // Being controlled by raw power input
-        Moving_To_Position // Moving to a specific position
+        Moving_To_Position, // Moving to a specific position
+        Intake_Position // Intake position
     }
 
     private SpindexerState currentState = SpindexerState.Holding_Position;
@@ -90,7 +91,7 @@ public class Spindexer {
     public void update() {
         switch (currentState) {
             case Searching_For_Color:
-                targetPosition = spindexerMotor.getCurrentPosition() + (int) (encoderResolution/3);
+                targetPosition = spindexerMotor.getCurrentPosition() + (int) (encoderResolution / 6);
                 // target position = currentposition + encoderresolution/3
                 // if Math.abs(targetPosition - curentPostiion) < 3 then check color
                 // if color correct, activate transfer
@@ -106,14 +107,16 @@ public class Spindexer {
                 double power = runPID();
                 spindexerMotor.setPower(power);
 
-                if (Math.abs(targetPosition - spindexerMotor.getCurrentPosition()) < 15)
-                // Check if the sensor sees the right color
+                if (Math.abs(targetPosition - spindexerMotor.getCurrentPosition()) < 10) {
+                    // Check if the sensor sees the right color
                     if (isTargetColorDetected()) {
-                    // If color is detected then hold
-                    holdPosition(targetPosition);
-                } else {
-                    currentState = SpindexerState.Searching_For_Color;
+                        // If color is detected then hold
+                        holdPosition(targetPosition);
+
+                    } else {
+                        currentState = SpindexerState.Searching_For_Color;
                     }
+                }
                 break;
 
             case Holding_Position:
