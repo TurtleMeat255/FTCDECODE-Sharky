@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 @TeleOp
-public class DriverOperator extends LinearOpMode{
+public class DriverOperator extends LinearOpMode {
     FTCDriveTrain drivetrain = new FTCDriveTrain();
     Spindexer spindexer = new Spindexer();
     Shooter shooter = new Shooter();
@@ -22,8 +22,7 @@ public class DriverOperator extends LinearOpMode{
         telemetry.update();
 
         waitForStart();
-        while (opModeIsActive())
-        {
+        while (opModeIsActive()) {
             // Driver controls
             double y = -gamepad1.left_stick_y;
             double x = gamepad1.left_stick_x;
@@ -38,18 +37,17 @@ public class DriverOperator extends LinearOpMode{
             boolean x2 = gamepad2.x;
             boolean Hoodup = gamepad2.right_bumper;
             boolean Hooddown = gamepad2.left_bumper;
+            boolean dPadLeft = gamepad2.dpad_left;
+
             // Drivetrain
-            drivetrain.Translate(x,y,rx,options);
+            drivetrain.Translate(x, y, rx, options);
             shooter.HoodStuff(Hoodup, Hooddown);
 
 
             // Spindexer manual servo
-            if (dpadUp2)
-            {
+            if (dpadUp2) {
                 spindexer.nudgeServoUp();
-            }
-            else if (dpadDown2)
-            {
+            } else if (dpadDown2) {
                 spindexer.nudgeServoDown();
             }
 
@@ -60,7 +58,7 @@ public class DriverOperator extends LinearOpMode{
                 spindexer.searchForPurpleBall(0.4); // Just 40% power
             }
 
-            yButton2Pressed =  y2;
+            yButton2Pressed = y2;
 
             // Seach for Green ball with the X Button
             if (x2 && !xButton2Pressed) {
@@ -82,14 +80,21 @@ public class DriverOperator extends LinearOpMode{
             // Shoot stuff ahhh code.
             if (gamepad2.a) {
                 shooter.ShootStuff(true);
-            }
-            else {
+            } else {
                 shooter.ShootStuff(false);
             }
 
             // Hood stuff ahhh code.
+            if (gamepad2.b) {
+                shooter.HoodStuff(true, false);
+            } else {
+                shooter.HoodStuff(false, false);
+            }
 
-        }
+            //Spindexer to intake position
+           if (dPadLeft) {
+               spindexer.moveOneSixth();
+           }
 
 
             // Telemetry for debugging
@@ -101,5 +106,6 @@ public class DriverOperator extends LinearOpMode{
             telemetry.update();
 
 
+        }
     }
 }

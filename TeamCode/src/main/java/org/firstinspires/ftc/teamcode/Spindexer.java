@@ -34,7 +34,9 @@ public class Spindexer {
         Searching_For_Color, // Rotating while looking for color
         Manual_Control, // Being controlled by raw power input
         Moving_To_Position, // Moving to a specific position
-        Intake_Position // Intake position
+        LeavingEntering_Intake, // Moving to intake
+        EnteringOrLeaving,
+
     }
 
     private SpindexerState currentState = SpindexerState.Holding_Position;
@@ -65,6 +67,9 @@ public class Spindexer {
 
     private float encoderResolution = 145.6f;
 
+    public boolean isIntake = true;
+
+    double power = 0;
 
     /*
      * Initialize all spindexer hardware to set motor modes.*/
@@ -90,8 +95,19 @@ public class Spindexer {
 
     public void update() {
         switch (currentState) {
-            case Searching_For_Color:
+
+
+            case LeavingEntering_Intake:
                 targetPosition = spindexerMotor.getCurrentPosition() + (int) (encoderResolution / 6);
+                integralSum = 0; // Reset PID
+                lastError = 0;
+                PIDTimer.reset();
+                currentState = SpindexerState.EnteringOrLeaving;
+                break;
+
+
+            case Searching_For_Color:
+                targetPosition = spindexerMotor.getCurrentPosition() + (int) (encoderResolution / 3);
                 // target position = currentposition + encoderresolution/3
                 // if Math.abs(targetPosition - curentPostiion) < 3 then check color
                 // if color correct, activate transfer
@@ -102,9 +118,9 @@ public class Spindexer {
                 currentState = SpindexerState.Moving_To_Position;
                 break;
 
-            case Moving_To_Position:
 
-                double power = runPID();
+            case Moving_To_Position:
+                power = runPID();
                 spindexerMotor.setPower(power);
 
                 if (Math.abs(targetPosition - spindexerMotor.getCurrentPosition()) < 10) {
@@ -116,6 +132,16 @@ public class Spindexer {
                     } else {
                         currentState = SpindexerState.Searching_For_Color;
                     }
+                }
+                break;
+
+            case EnteringOrLeaving:
+                power = runPID();
+                spindexerMotor.setPower(power);
+
+                if (Math.abs(targetPosition - spindexerMotor.getCurrentPosition()) < 10)
+                {
+                    holdPosition(targetPosition);
                 }
                 break;
 
@@ -225,6 +251,10 @@ public class Spindexer {
 
     public double getServoPosition() {
         return this.currentServoPosition;
+    }
+
+    public void moveOneSixth() {
+        this.currentState = SpindexerState.LeavingEntering_Intake;
     }
 
     public String getCurrentState() {
