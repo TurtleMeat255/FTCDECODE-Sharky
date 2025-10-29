@@ -37,18 +37,32 @@ public class DriverOperator extends LinearOpMode {
             boolean x2 = gamepad2.x;
             boolean Hoodup = gamepad2.right_bumper;
             boolean Hooddown = gamepad2.left_bumper;
-            boolean dPadLeft = gamepad2.dpad_left;
+            boolean dPadLeft2 = gamepad2.dpad_left;
 
             // Drivetrain
             drivetrain.Translate(x, y, rx, options);
             shooter.HoodStuff(Hoodup, Hooddown);
 
+            // Spindexer Current State
 
-            // Spindexer manual servo
-            if (dpadUp2) {
+            String currentState = spindexer.getCurrentState();
+
+            // Check if the spindexer is currently in a state where the motor would be moving.
+            boolean isSpindexerRunning = currentState.equals("Searching_For_Color") ||
+                    currentState.equals("Moving_To_Position") ||
+                    currentState.equals("EnteringOrLeaving");
+
+            // Spindexer manual servo control
+            if (dpadUp2 && !isSpindexerRunning) { // Only allow nudge up if the spindexer is NOT running
                 spindexer.nudgeServoUp();
             } else if (dpadDown2) {
+                // We can always allow the servo to go down for safety.
                 spindexer.nudgeServoDown();
+            }
+
+            //Spindexer to intake position
+            if (dPadLeft2) {
+                spindexer.moveOneSixth();
             }
 
             // Spindexer color search (If button pressed search for purple)
@@ -60,7 +74,7 @@ public class DriverOperator extends LinearOpMode {
 
             yButton2Pressed = y2;
 
-            // Seach for Green ball with the X Button
+            // Search for Green ball with the X Button
             if (x2 && !xButton2Pressed) {
                 spindexer.searchForGreenBall(0.4);
             }
@@ -91,10 +105,6 @@ public class DriverOperator extends LinearOpMode {
                 shooter.HoodStuff(false, false);
             }
 
-            //Spindexer to intake position
-           if (dPadLeft) {
-               spindexer.moveOneSixth();
-           }
 
 
             // Telemetry for debugging

@@ -99,9 +99,9 @@ public class Spindexer {
 
             case LeavingEntering_Intake:
                 targetPosition = spindexerMotor.getCurrentPosition() + (int) (encoderResolution / 6);
-                integralSum = 0; // Reset PID
-                lastError = 0;
-                PIDTimer.reset();
+
+                resetAndGo();
+
                 currentState = SpindexerState.EnteringOrLeaving;
                 break;
 
@@ -112,9 +112,8 @@ public class Spindexer {
                 // if Math.abs(targetPosition - curentPostiion) < 3 then check color
                 // if color correct, activate transfer
                 // otherwise move one third again
-                integralSum = 0; // Reset PID
-                lastError = 0;
-                PIDTimer.reset();
+                resetAndGo();
+
                 currentState = SpindexerState.Moving_To_Position;
                 break;
 
@@ -159,6 +158,12 @@ public class Spindexer {
         }
     }
 
+    private void resetAndGo() {
+        integralSum = 0;
+        lastError = 0;
+        PIDTimer.reset();
+    }
+
 
     /* Puts the spindexer into Searching_For_Color mode.
      * Call this when you press the button to find a specific ball.
@@ -193,7 +198,6 @@ public class Spindexer {
         integralSum += error * PIDTimer.seconds();
 
         lastError = error;
-        PIDTimer.reset();
 
         double power = (kp * error) + (ki * integralSum) + (kd * derivative);
         return power;
