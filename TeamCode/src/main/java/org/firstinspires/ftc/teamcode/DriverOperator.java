@@ -60,9 +60,14 @@ public class DriverOperator extends LinearOpMode {
                 spindexer.nudgeServoDown();
             }
 
-            //Spindexer to intake position
-            if (dPadLeft2) {
+            //Spindexer to move 1/6
+            if (dPadLeft2 && !isSpindexerRunning) {
                 spindexer.moveOneSixth();
+            }
+
+            //Spindexer to move 1/3
+            if (dPadLeft2 && !isSpindexerRunning) {
+                spindexer.Move3();
             }
 
             // Spindexer color search (If button pressed search for purple)

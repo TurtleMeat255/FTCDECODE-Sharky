@@ -36,6 +36,8 @@ public class Spindexer {
         Moving_To_Position, // Moving to a specific position
         LeavingEntering_Intake, // Moving to intake
         EnteringOrLeaving,
+        Move3
+
 
     }
 
@@ -104,6 +106,13 @@ public class Spindexer {
 
                 currentState = SpindexerState.EnteringOrLeaving;
                 break;
+
+            case Move3:
+                targetPosition = spindexerMotor.getCurrentPosition() + (int) (encoderResolution / 3);
+
+                resetAndGo();
+
+                currentState = SpindexerState.EnteringOrLeaving;
 
 
             case Searching_For_Color:
@@ -259,6 +268,10 @@ public class Spindexer {
 
     public void moveOneSixth() {
         this.currentState = SpindexerState.LeavingEntering_Intake;
+    }
+
+    public void Move3() {
+        this.currentState = SpindexerState.Move3;
     }
 
     public String getCurrentState() {
