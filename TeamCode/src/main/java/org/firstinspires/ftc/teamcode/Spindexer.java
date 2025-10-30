@@ -22,7 +22,7 @@ public class Spindexer {
     public Servo popupServo =  null;
 
     private static final double SERVO_INCREMENT = 0.025; // How much to move the servo on each press
-    private static final double SERVO_MAX_POSITION = 0.1; // The highest the servo can go
+    private static final double SERVO_MAX_POSITION = 0.25; // The highest the servo can go
     private static final double SERVO_MIN_POSITION = 0.0; // The lowest the servo can go.
     private double currentServoPosition;
 
@@ -115,6 +115,7 @@ public class Spindexer {
                 resetAndGo();
 
                 currentState = SpindexerState.EnteringOrLeaving;
+                break;
 
 
             case Searching_For_Color:
@@ -205,14 +206,21 @@ public class Spindexer {
     private double runPID() {
         int currentPosition = spindexerMotor.getCurrentPosition();
         double error = targetPosition - currentPosition;
-        double derivative = (PIDTimer.seconds() > 0) ? (error - lastError) / PIDTimer.seconds() : 0;
-        integralSum += error * PIDTimer.seconds();
+
+        double dt = PIDTimer.seconds();   // ✅ store delta time once
+        PIDTimer.reset();                 // ✅ reset for next iteration
+
+        double derivative = (dt > 0) ? (error - lastError) / dt : 0;
+        integralSum += error * dt;
 
         lastError = error;
 
         double power = (kp * error) + (ki * integralSum) + (kd * derivative);
+
+        power = Math.max(-1, Math.min(1, power));
         return power;
     }
+
 
     /* Checks if the color sensor currently sees the desired color.
      * Return true if the color is within the target hue range.*/
@@ -223,9 +231,9 @@ public class Spindexer {
 
         float[] hsvValues = {0F, 0F, 0F};
         android.graphics.Color.RGBToHSV(
-                (int) (colorSensor.red() * 255),
-                (int) (colorSensor.green() * 255),
-                (int) (colorSensor.blue() * 255),
+                (int) (colorSensor.red()),
+                (int) (colorSensor.green()),
+                (int) (colorSensor.blue()),
                 hsvValues
         );
 
@@ -246,7 +254,7 @@ public class Spindexer {
 
     public void nudgeServoUp() {
         // Add the increment to the current position
-        boolean servoUp = true;
+        servoUp = true;
         currentServoPosition += SERVO_INCREMENT;
 
         // Math.min to make sure the position never goes above the max limit
@@ -259,7 +267,7 @@ public class Spindexer {
         // Add the increment to the current position
         currentServoPosition -= SERVO_INCREMENT;
 
-        boolean servoUp = false;
+        servoUp = false;
 
         // Math.min to make sure the position never goes above the max limit
         currentServoPosition = Math.max(currentServoPosition, SERVO_MIN_POSITION);
@@ -290,9 +298,9 @@ public class Spindexer {
     public float[] getHsvValues() {
         float[] hsvValues = {0F, 0F, 0F};
         android.graphics.Color.RGBToHSV(
-                (int) (colorSensor.red() * 255),
-                (int) (colorSensor.green() * 255),
-                (int) (colorSensor.blue() * 255),
+                (int) (colorSensor.red()),
+                (int) (colorSensor.green()),
+                (int) (colorSensor.blue()),
                 hsvValues
         );
         return hsvValues;
