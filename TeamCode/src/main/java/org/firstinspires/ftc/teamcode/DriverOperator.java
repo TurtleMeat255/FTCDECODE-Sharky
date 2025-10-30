@@ -55,23 +55,23 @@ public class DriverOperator extends LinearOpMode {
             // Spindexer manual servo control
             if (dpadUp2 && !isSpindexerRunning) { // Only allow nudge up if the spindexer is NOT running
                 spindexer.nudgeServoUp();
-            } else if (dpadDown2) {
+            } else if (dpadDown2 && !isSpindexerRunning) {
                 // We can always allow the servo to go down for safety.
                 spindexer.nudgeServoDown();
             }
 
             //Spindexer to move 1/6
-            if (dPadLeft2 && !isSpindexerRunning) {
+            if (dPadLeft2 && !isSpindexerRunning && !spindexer.servoUp) {
                 spindexer.moveOneSixth();
             }
 
             //Spindexer to move 1/3
-            if (dPadLeft2 && !isSpindexerRunning) {
+            if (dPadLeft2 && !isSpindexerRunning && !spindexer.servoUp) {
                 spindexer.Move3();
             }
 
             // Spindexer color search (If button pressed search for purple)
-            if (y2 && !yButton2Pressed) {
+            if (y2 && !yButton2Pressed && !isSpindexerRunning && !spindexer.servoUp) {
                 // When Y is pressed for the first time call searchForColor
                 // The spindexer class will handle spinning, stopping, and raising the servo
                 spindexer.searchForPurpleBall(0.4); // Just 40% power
@@ -80,7 +80,7 @@ public class DriverOperator extends LinearOpMode {
             yButton2Pressed = y2;
 
             // Search for Green ball with the X Button
-            if (x2 && !xButton2Pressed) {
+            if (x2 && !xButton2Pressed && !isSpindexerRunning && !spindexer.servoUp) {
                 spindexer.searchForGreenBall(0.4);
             }
 

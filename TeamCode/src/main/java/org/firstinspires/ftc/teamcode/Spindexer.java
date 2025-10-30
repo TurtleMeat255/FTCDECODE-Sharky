@@ -26,6 +26,8 @@ public class Spindexer {
     private static final double SERVO_MIN_POSITION = 0.0; // The lowest the servo can go.
     private double currentServoPosition;
 
+    public boolean servoUp = false;
+
     /* State Machine for Spindexer control
      * State machine to manage different behaviors */
 
@@ -244,6 +246,7 @@ public class Spindexer {
 
     public void nudgeServoUp() {
         // Add the increment to the current position
+        boolean servoUp = true;
         currentServoPosition += SERVO_INCREMENT;
 
         // Math.min to make sure the position never goes above the max limit
@@ -255,6 +258,8 @@ public class Spindexer {
     public void nudgeServoDown() {
         // Add the increment to the current position
         currentServoPosition -= SERVO_INCREMENT;
+
+        boolean servoUp = false;
 
         // Math.min to make sure the position never goes above the max limit
         currentServoPosition = Math.max(currentServoPosition, SERVO_MIN_POSITION);
