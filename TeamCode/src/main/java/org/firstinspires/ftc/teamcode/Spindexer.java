@@ -56,6 +56,7 @@ public class Spindexer {
     private double integralSum = 0;
     private double lastError = 0;
     private int targetPosition = 0; // Encoder tick we want motor to hold.
+    private double preciseTargetPosition = 0.0;
 
     // Color search variables
     private double searchPower = 0.3;
@@ -95,6 +96,7 @@ public class Spindexer {
         // Sart in a holding position 0
         currentState = SpindexerState.Holding_Position;
         targetPosition = 0; // We can fix this I think.
+        preciseTargetPosition = 0.0;
     }
 
     public void update() {
@@ -102,7 +104,8 @@ public class Spindexer {
 
 
             case LeavingEntering_Intake:
-                targetPosition = spindexerMotor.getCurrentPosition() + (int) (encoderResolution / 6);
+                preciseTargetPosition += encoderResolution / 6.0;
+                targetPosition = (int) Math.round(preciseTargetPosition);
 
                 resetAndGo();
 
@@ -110,8 +113,8 @@ public class Spindexer {
                 break;
 
             case Move3:
-                targetPosition = spindexerMotor.getCurrentPosition() + (int) (encoderResolution / 3);
-
+                preciseTargetPosition += encoderResolution / 3.0;
+                targetPosition = (int) Math.round(preciseTargetPosition);
                 resetAndGo();
 
                 currentState = SpindexerState.EnteringOrLeaving;
@@ -119,11 +122,12 @@ public class Spindexer {
 
 
             case Searching_For_Color:
-                targetPosition = spindexerMotor.getCurrentPosition() + (int) (encoderResolution / 3);
+                preciseTargetPosition += encoderResolution / 3.0;
                 // target position = currentposition + encoderresolution/3
                 // if Math.abs(targetPosition - curentPostiion) < 3 then check color
                 // if color correct, activate transfer
                 // otherwise move one third again
+                targetPosition = (int) Math.round(preciseTargetPosition);
                 resetAndGo();
 
                 currentState = SpindexerState.Moving_To_Position;
@@ -196,6 +200,7 @@ public class Spindexer {
     /* Sets a new target position and engages the PID controller to hold it.*/
     private void holdPosition(int position) {
         targetPosition = position;
+        preciseTargetPosition = position;
         // Reset PID variables for a clean start at a new target
         integralSum = 0;
         lastError = 0;
