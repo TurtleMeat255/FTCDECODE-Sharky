@@ -230,21 +230,27 @@ public class Spindexer {
     /* Checks if the color sensor currently sees the desired color.
      * Return true if the color is within the target hue range.*/
     private boolean isTargetColorDetected() {
-        // Convert RGB sensor values to HSV color model.
-        // Hue is a good reliable metric for color identification under varying light according to google.
-
-
         float[] hsvValues = {0F, 0F, 0F};
-        android.graphics.Color.RGBToHSV(
-                (int) (colorSensor.red()),
-                (int) (colorSensor.green()),
-                (int) (colorSensor.blue()),
-                hsvValues
-        );
 
-        float hue = hsvValues[0]; // Hue is the first value, from 0 to 360.
+        // Get the raw sensor values
+        int red = colorSensor.red();
+        int green = colorSensor.green();
+        int blue = colorSensor.blue();
 
-        // Check if the detected hue is within our range.
+        // Find the maximum value among R, G, B
+        int max = Math.max(Math.max(red, green), blue);
+
+        // Normalize the values to the 0-255 range if the max is greater than 255
+        if (max > 255) {
+            red = (int)(red / (double)max * 255.0);
+            green = (int)(green / (double)max * 255.0);
+            blue = (int)(blue / (double)max * 255.0);
+        }
+
+        // Now convert the guaranteed 0-255 values
+        android.graphics.Color.RGBToHSV(red, green, blue, hsvValues);
+
+        float hue = hsvValues[0];
         return (Math.abs(hue - targetHue) < hueRange);
     }
 
@@ -302,12 +308,23 @@ public class Spindexer {
 
     public float[] getHsvValues() {
         float[] hsvValues = {0F, 0F, 0F};
-        android.graphics.Color.RGBToHSV(
-                (int) (colorSensor.red()),
-                (int) (colorSensor.green()),
-                (int) (colorSensor.blue()),
-                hsvValues
-        );
+
+        // Get the raw sensor values
+        int red = colorSensor.red();
+        int green = colorSensor.green();
+        int blue = colorSensor.blue();
+
+        // Find the maximum value
+        int max = Math.max(Math.max(red, green), blue);
+
+        // Normalize
+        if (max > 255) {
+            red = (int)(red / (double)max * 255.0);
+            green = (int)(green / (double)max * 255.0);
+            blue = (int)(blue / (double)max * 255.0);
+        }
+
+        android.graphics.Color.RGBToHSV(red, green, blue, hsvValues);
         return hsvValues;
     }
 }
