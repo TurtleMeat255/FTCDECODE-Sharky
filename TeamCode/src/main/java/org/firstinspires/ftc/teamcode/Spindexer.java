@@ -22,9 +22,11 @@ public class Spindexer {
     public Servo popupServo =  null;
 
     private static final double SERVO_INCREMENT = 0.025; // How much to move the servo on each press
-    private static final double SERVO_MAX_POSITION = 0.1; // The highest the servo can go
+    private static final double SERVO_MAX_POSITION = 0.25; // The highest the servo can go
     private static final double SERVO_MIN_POSITION = 0.0; // The lowest the servo can go.
     private double currentServoPosition;
+
+    public boolean servoUp = false;
 
     /* State Machine for Spindexer control
      * State machine to manage different behaviors */
@@ -33,6 +35,12 @@ public class Spindexer {
         Holding_Position, // Using PID to hod a specific encoder position
         Searching_For_Color, // Rotating while looking for color
         Manual_Control, // Being controlled by raw power input
+        Moving_To_Position, // Moving to a specific position
+        LeavingEntering_Intake, // Moving to intake
+        EnteringOrLeaving,
+        Move3
+
+
     }
 
     private SpindexerState currentState = SpindexerState.Holding_Position;
@@ -48,6 +56,7 @@ public class Spindexer {
     private double integralSum = 0;
     private double lastError = 0;
     private int targetPosition = 0; // Encoder tick we want motor to hold.
+    private double preciseTargetPosition = 0.0;
 
     // Color search variables
     private double searchPower = 0.3;
@@ -60,6 +69,12 @@ public class Spindexer {
 
     // Variable to hold the hue we are currently looking for.
     private float targetHue = PURPLE_HUE;
+
+    private float encoderResolution = 145.6f;
+
+    public boolean isIntake = true;
+
+    double power = 0;
 
     /*
      * Initialize all spindexer hardware to set motor modes.*/
@@ -81,23 +96,67 @@ public class Spindexer {
         // Sart in a holding position 0
         currentState = SpindexerState.Holding_Position;
         targetPosition = 0; // We can fix this I think.
+        preciseTargetPosition = 0.0;
     }
 
     public void update() {
         switch (currentState) {
+
+
+            case LeavingEntering_Intake:
+                preciseTargetPosition += encoderResolution / 6.0;
+                targetPosition = (int) Math.round(preciseTargetPosition);
+
+                resetAndGo();
+
+                currentState = SpindexerState.EnteringOrLeaving;
+                break;
+
+            case Move3:
+                preciseTargetPosition += encoderResolution / 3.0;
+                targetPosition = (int) Math.round(preciseTargetPosition);
+                resetAndGo();
+
+                currentState = SpindexerState.EnteringOrLeaving;
+                break;
+
+
             case Searching_For_Color:
+                preciseTargetPosition += encoderResolution / 3.0;
+                // target position = currentposition + encoderresolution/3
+                // if Math.abs(targetPosition - curentPostiion) < 3 then check color
+                // if color correct, activate transfer
+                // otherwise move one third again
+                targetPosition = (int) Math.round(preciseTargetPosition);
+                resetAndGo();
 
-                // Set motor to spin slowly
-                spindexerMotor.setPower(searchPower);
+                currentState = SpindexerState.Moving_To_Position;
+                break;
 
-                // Check if the sensor sees the right color
-                if (isTargetColorDetected()) {
-                    // Color found!
-                    // Get the current position which is going to be new target.
-                    int foundPosition = spindexerMotor.getCurrentPosition();
 
-                    // Switch to Holding state to lock onto this position
-                    holdPosition(foundPosition);
+            case Moving_To_Position:
+                power = runPID();
+                spindexerMotor.setPower(power);
+
+                if (Math.abs(targetPosition - spindexerMotor.getCurrentPosition()) < 10) {
+                    // Check if the sensor sees the right color
+                    if (isTargetColorDetected()) {
+                        // If color is detected then hold
+                        holdPosition(targetPosition);
+
+                    } else {
+                        currentState = SpindexerState.Searching_For_Color;
+                    }
+                }
+                break;
+
+            case EnteringOrLeaving:
+                power = runPID();
+                spindexerMotor.setPower(power);
+
+                if (Math.abs(targetPosition - spindexerMotor.getCurrentPosition()) < 10)
+                {
+                    holdPosition(targetPosition);
                 }
                 break;
 
@@ -113,6 +172,12 @@ public class Spindexer {
                 // The power is set directly by the setPower() method.
                 break;
         }
+    }
+
+    private void resetAndGo() {
+        integralSum = 0;
+        lastError = 0;
+        PIDTimer.reset();
     }
 
 
@@ -135,6 +200,7 @@ public class Spindexer {
     /* Sets a new target position and engages the PID controller to hold it.*/
     private void holdPosition(int position) {
         targetPosition = position;
+        preciseTargetPosition = position;
         // Reset PID variables for a clean start at a new target
         integralSum = 0;
         lastError = 0;
@@ -145,34 +211,46 @@ public class Spindexer {
     private double runPID() {
         int currentPosition = spindexerMotor.getCurrentPosition();
         double error = targetPosition - currentPosition;
-        double derivative = (PIDTimer.seconds() > 0) ? (error - lastError) / PIDTimer.seconds() : 0;
-        integralSum += error * PIDTimer.seconds();
+
+        double dt = PIDTimer.seconds();   // ✅ store delta time once
+        PIDTimer.reset();                 // ✅ reset for next iteration
+
+        double derivative = (dt > 0) ? (error - lastError) / dt : 0;
+        integralSum += error * dt;
 
         lastError = error;
-        PIDTimer.reset();
 
         double power = (kp * error) + (ki * integralSum) + (kd * derivative);
+
+        power = Math.max(-1, Math.min(1, power));
         return power;
     }
+
 
     /* Checks if the color sensor currently sees the desired color.
      * Return true if the color is within the target hue range.*/
     private boolean isTargetColorDetected() {
-        // Convert RGB sensor values to HSV color model.
-        // Hue is a good reliable metric for color identification under varying light according to google.
-
-
         float[] hsvValues = {0F, 0F, 0F};
-        android.graphics.Color.RGBToHSV(
-                (int) (colorSensor.red() * 255),
-                (int) (colorSensor.green() * 255),
-                (int) (colorSensor.blue() * 255),
-                hsvValues
-        );
 
-        float hue = hsvValues[0]; // Hue is the first value, from 0 to 360.
+        // Get the raw sensor values
+        int red = colorSensor.red();
+        int green = colorSensor.green();
+        int blue = colorSensor.blue();
 
-        // Check if the detected hue is within our range.
+        // Find the maximum value among R, G, B
+        int max = Math.max(Math.max(red, green), blue);
+
+        // Normalize the values to the 0-255 range if the max is greater than 255
+        if (max > 255) {
+            red = (int)(red / (double)max * 255.0);
+            green = (int)(green / (double)max * 255.0);
+            blue = (int)(blue / (double)max * 255.0);
+        }
+
+        // Now convert the guaranteed 0-255 values
+        android.graphics.Color.RGBToHSV(red, green, blue, hsvValues);
+
+        float hue = hsvValues[0];
         return (Math.abs(hue - targetHue) < hueRange);
     }
 
@@ -187,6 +265,7 @@ public class Spindexer {
 
     public void nudgeServoUp() {
         // Add the increment to the current position
+        servoUp = true;
         currentServoPosition += SERVO_INCREMENT;
 
         // Math.min to make sure the position never goes above the max limit
@@ -199,6 +278,8 @@ public class Spindexer {
         // Add the increment to the current position
         currentServoPosition -= SERVO_INCREMENT;
 
+        servoUp = false;
+
         // Math.min to make sure the position never goes above the max limit
         currentServoPosition = Math.max(currentServoPosition, SERVO_MIN_POSITION);
 
@@ -207,6 +288,14 @@ public class Spindexer {
 
     public double getServoPosition() {
         return this.currentServoPosition;
+    }
+
+    public void moveOneSixth() {
+        this.currentState = SpindexerState.LeavingEntering_Intake;
+    }
+
+    public void Move3() {
+        this.currentState = SpindexerState.Move3;
     }
 
     public String getCurrentState() {
@@ -219,12 +308,23 @@ public class Spindexer {
 
     public float[] getHsvValues() {
         float[] hsvValues = {0F, 0F, 0F};
-        android.graphics.Color.RGBToHSV(
-                (int) (colorSensor.red() * 255),
-                (int) (colorSensor.green() * 255),
-                (int) (colorSensor.blue() * 255),
-                hsvValues
-        );
+
+        // Get the raw sensor values
+        int red = colorSensor.red();
+        int green = colorSensor.green();
+        int blue = colorSensor.blue();
+
+        // Find the maximum value
+        int max = Math.max(Math.max(red, green), blue);
+
+        // Normalize
+        if (max > 255) {
+            red = (int)(red / (double)max * 255.0);
+            green = (int)(green / (double)max * 255.0);
+            blue = (int)(blue / (double)max * 255.0);
+        }
+
+        android.graphics.Color.RGBToHSV(red, green, blue, hsvValues);
         return hsvValues;
     }
 }

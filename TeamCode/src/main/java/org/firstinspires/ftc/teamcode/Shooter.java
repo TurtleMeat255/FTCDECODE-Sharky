@@ -14,7 +14,7 @@ boolean LastUp = false;
 boolean LastDown = false;
 double position = 0;
 public void init(HardwareMap hwMap) {
-    Shooter1 = hwMap.get(DcMotor.class, "Shooter1");
+    Shooter1 = hwMap.get(DcMotor.class, "Shooter1"); //
     Shooter2 = hwMap.get(DcMotor.class, "Shooter2");
     Hood1 = hwMap.get(Servo.class, "Hood1");
     Hood2 = hwMap.get(Servo.class, "Hood2");
@@ -45,3 +45,23 @@ public void init(HardwareMap hwMap) {
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 67
