@@ -228,5 +228,3 @@ public class Spindexer {
         return hsvValues;
     }
 }
-
-

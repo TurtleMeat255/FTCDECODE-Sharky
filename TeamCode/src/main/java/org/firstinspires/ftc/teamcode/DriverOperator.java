@@ -4,17 +4,22 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 @TeleOp
 public class DriverOperator extends LinearOpMode{
     FTCDriveTrain drivetrain = new FTCDriveTrain();
-    Spindexer spindexer = new Spindexer();
+    Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
-
-
-    private boolean yButton2Pressed = false;
-    private boolean xButton2Pressed = false;
+    public double inputAngle = 0;
+    public boolean intakeAligned = true;
+    boolean lastShooterLeft = false;
+    boolean lastShooterRight = false;
+    boolean lastIntakeLeft = false;
+    boolean lastIntakeRight = false;
+    boolean coloringRn = false;
+    int colorIWant = 0; // 0 = no color, 1 = green, 2 = purple
+    int ticker = 0;
 
     @Override
     public void runOpMode() {
         drivetrain.init(hardwareMap);
-        spindexer.init(hardwareMap);
+        spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
 
         // I wanna know if initialization is complete.
@@ -31,51 +36,20 @@ public class DriverOperator extends LinearOpMode{
             boolean options = gamepad1.options;
 
             // Shooter controls
-            boolean dpadUp2 = gamepad2.dpad_up;
-            boolean dpadDown2 = gamepad2.dpad_down;
-            double leftStick2Y = gamepad2.left_stick_y;
-            boolean y2 = gamepad2.y;
-            boolean x2 = gamepad2.x;
+            boolean shooterLeft = gamepad2.x;
+            boolean shooterRight = gamepad2.y;
+            boolean intakeLeft = gamepad2.a;
+            boolean intakeRight = gamepad2.b;
+            boolean pushUp = gamepad2.dpad_up;
+            boolean pushDown = gamepad2.dpad_down;
             boolean Hoodup = gamepad2.right_bumper;
             boolean Hooddown = gamepad2.left_bumper;
+            boolean shootAGreen = gamepad2.dpad_left;
+            boolean shootAPurple = gamepad2.dpad_right;
+
             // Drivetrain
             drivetrain.Translate(x,y,rx,options);
             shooter.HoodStuff(Hoodup, Hooddown);
-
-            // Spindexer manual servo
-            if (dpadUp2)
-            {
-                spindexer.nudgeServoUp();
-            }
-            else if (dpadDown2)
-            {
-                spindexer.nudgeServoDown();
-            }
-
-            // Spindexer color search (If button pressed search for purple)
-            if (y2 && !yButton2Pressed) {
-                // When Y is pressed for the first time call searchForColor
-                // The spindexer class will handle spinning, stopping, and raising the servo
-                spindexer.searchForPurpleBall(0.4); // Just 40% power
-            }
-
-            yButton2Pressed =  y2;
-
-            // Seach for Green ball with the X Button
-            if (x2 && !xButton2Pressed) {
-                spindexer.searchForGreenBall(0.4);
-            }
-
-            xButton2Pressed = x2;
-
-            // Spindexer manual motor override
-            // So operator can manually spin the spindexer with a left stick
-
-            if (Math.abs(leftStick2Y) > 0.1) {
-                spindexer.setManualPower(leftStick2Y);
-            }
-
-            spindexer.update();
 
             // Shoot stuff ahhh code.
             if (gamepad2.a) {
@@ -84,16 +58,86 @@ public class DriverOperator extends LinearOpMode{
             else {
                 shooter.ShootStuff(false);
             }
+            if (!coloringRn && spinindexer.isItDown()) {
+                if (shootAPurple && !intakeAligned && spinindexer.withinRange(inputAngle)) {
+                    colorIWant = 2;
+                    coloringRn = true;
+                    ticker = 0;
+                }
+                if (shootAGreen && !intakeAligned && spinindexer.withinRange(inputAngle)) {
+                    colorIWant = 1;
+                    coloringRn = true;
+                    ticker = 0;
+                }
+            }
+            if (!coloringRn) {
+                if (spinindexer.isItDown()) {
+                    if (shooterLeft && !lastShooterLeft) {
+                        if (intakeAligned) {
+                            inputAngle += 60;
+                            intakeAligned = !intakeAligned;
+                        } else {
+                            inputAngle += 120;
+                        }
+                    }
+                    if (shooterRight && !lastShooterRight) {
+                        if (intakeAligned) {
+                            inputAngle -= 60;
+                            intakeAligned = !intakeAligned;
+                        } else {
+                            inputAngle -= 120;
+                        }
+                    }
+                    if (intakeLeft && !lastIntakeLeft) {
+                        if (intakeAligned) {
+                            inputAngle += 120;
+                        } else {
+                            inputAngle += 60;
+                            intakeAligned = !intakeAligned;
+                        }
+                    }
+                    if (intakeRight && !lastIntakeRight) {
+                        if (intakeAligned) {
+                            inputAngle -= 120;
+                        } else {
+                            inputAngle -= 60;
+                            intakeAligned = !intakeAligned;
+                        }
+                    }
+                }
+            }
+            if (coloringRn) {
+                if (spinindexer.withinRange(inputAngle)) {
+                    if (spinindexer.colorDetected() == colorIWant) {
+                            pushUp = true;
+                            coloringRn = false;
+                    } else {
+                        pushUp = false;
+                        ticker += 1;
+                        if (ticker == 2) {
+                            coloringRn = false;
+                        } else {
+                            inputAngle += 120;
+                        }
+                    }
+                }
+            }
 
-            // Hood stuff ahhh code.
 
+
+            lastIntakeRight = intakeRight;
+            lastShooterLeft = shooterLeft;
+            lastIntakeLeft = intakeLeft;
+            lastShooterRight = shooterRight;
+            spinindexer.PID(inputAngle);
+
+            if (!spinindexer.withinRange(inputAngle)) {
+                pushUp = false;
+            }
+            if (intakeAligned) {
+                pushUp = false;
+            }
+            spinindexer.nudging(pushUp, pushDown);
         }
-
-            // Telemetry for debugging
-            telemetry.addData("Spindexer State", spindexer.getCurrentState());
-            telemetry.addData("Servo Position", "%.2f", spindexer.getServoPosition());
-            float[] hsv = spindexer.getHsvValues();
-            telemetry.addData("Hue", "%.1f", hsv[0]);
-            telemetry.update();
     }
 }
