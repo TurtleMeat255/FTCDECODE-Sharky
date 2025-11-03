@@ -53,10 +53,14 @@ public class TESTOPMODE extends LinearOpMode{
         {
             // Shoot stuff ahhh code.
             if (gamepad2.a) {
-                shooter.ShootStuff(true);
+                shooter.ActivateShooter(true);
+            }
+            else if (gamepad1.a)
+            {
+                shooter.FireAtRPM(6000);
             }
             else {
-                shooter.ShootStuff(false);
+                shooter.ActivateShooter(false);
             }
 
             if (gamepad2.y){
