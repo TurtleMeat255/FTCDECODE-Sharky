@@ -9,20 +9,31 @@ import com.pedropathing.ftc.drivetrains.MecanumConstants;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.pedropathing.ftc.localization.Encoder;
 import com.pedropathing.ftc.localization.constants.DriveEncoderConstants;
-import com.pedropathing.ftc.localization.constants.OTOSConstants;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 
 public class Constants {
-    public static OTOSConstants localizerConstants = new OTOSConstants()
-            .hardwareMapName("otos")
-            .linearUnit(DistanceUnit.INCH)
-            .angleUnit(AngleUnit.RADIANS);
+    public static DriveEncoderConstants localizerConstants = new DriveEncoderConstants()
+            .rightFrontMotorName("frontRightMotor")
+            .rightRearMotorName("backRightMotor")
+            .leftRearMotorName("backLeftMotor")
+            .leftFrontMotorName("frontLeftMotor")
+            .leftFrontEncoderDirection(Encoder.FORWARD)
+            .leftRearEncoderDirection(Encoder.FORWARD)
+            .rightFrontEncoderDirection(Encoder.FORWARD)
+            .rightRearEncoderDirection(Encoder.FORWARD)
+            .robotWidth(11.2)
+            .robotLength(17.2);
+/*         Tune these later. Do 48 inches for both forward and strafe (left or right). and for .turnTicksToInches do 1 full counterclockwise rotation of the bot.
+
+            .forwardTicksToInches()
+            .strafeTicksToInches()
+            .turnTicksToInches();
+
+*/
 
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(5);
+            .mass(67); // tune this later
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
@@ -40,7 +51,7 @@ public class Constants {
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
                 .mecanumDrivetrain(driveConstants)
-                .OTOSLocalizer(localizerConstants)
+                .driveEncoderLocalizer(localizerConstants)
                 .pathConstraints(pathConstraints)
                 .build();
     }
