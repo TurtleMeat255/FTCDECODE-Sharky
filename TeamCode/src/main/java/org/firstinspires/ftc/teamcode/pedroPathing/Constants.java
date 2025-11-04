@@ -35,22 +35,12 @@ public class Constants {
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
 
-    public static DriveEncoderConstants localizerConstants = new DriveEncoderConstants()
-            .rightFrontMotorName("frontRightMotor")
-            .rightRearMotorName("backRightMotor")
-            .leftRearMotorName("backLeftMotor")
-            .leftFrontMotorName("frontLeftMotor")
-            .leftFrontEncoderDirection(Encoder.FORWARD)
-            .leftRearEncoderDirection(Encoder.FORWARD)
-            .rightFrontEncoderDirection(Encoder.FORWARD)
-            .rightRearEncoderDirection(Encoder.FORWARD);
-
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
                 .mecanumDrivetrain(driveConstants)
-                .driveEncoderLocalizer(localizerConstants)
+                .OTOSLocalizer(localizerConstants)
                 .pathConstraints(pathConstraints)
                 .build();
     }
