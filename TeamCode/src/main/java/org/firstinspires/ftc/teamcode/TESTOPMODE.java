@@ -67,10 +67,10 @@ public class TESTOPMODE extends LinearOpMode{
 
             // Intake stuff ahhh code.
             if (gamepad1.a) {
-                intake.ActivateIntake(true);
+                intake.ActivateIntake(true, false);
             }
             else {
-                intake.ActivateIntake(false);
+                intake.ActivateIntake(false, false);
             }
 
             // Shoot stuff ahhh code.
