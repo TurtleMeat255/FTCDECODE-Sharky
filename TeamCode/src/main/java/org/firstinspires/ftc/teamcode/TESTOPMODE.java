@@ -9,10 +9,12 @@ public class TESTOPMODE extends LinearOpMode{
 //    FTCDriveTrain drivetrain = new FTCDriveTrain();
 //    Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
+    IntakeCode intake = new IntakeCode();
 
     Servo nudger = null;
     DcMotor spindexer = null;
-    DcMotor intake = null;
+
+    DcMotor intake1 = null;
 
     public double inputAngle = 0;
     public boolean intakeAligned = true;
@@ -51,6 +53,15 @@ public class TESTOPMODE extends LinearOpMode{
         waitForStart();
         while (opModeIsActive())
         {
+
+            // Intake stuff ahhh code.
+            if (gamepad1.a) {
+                intake.ActivateIntake(true);
+            }
+            else {
+                intake.ActivateIntake(false);
+            }
+
             // Shoot stuff ahhh code.
             if (gamepad2.a) {
                 shooter.ActivateShooter(true);

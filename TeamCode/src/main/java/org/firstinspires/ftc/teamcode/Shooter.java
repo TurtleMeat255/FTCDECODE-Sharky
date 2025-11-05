@@ -29,8 +29,8 @@ public class Shooter {
     public void init(HardwareMap hwMap) {
         shooter1 = hwMap.get(DcMotor.class, "Shooter1"); //
         shooter2 = hwMap.get(DcMotor.class, "Shooter2");
-    //    Hood1 = hwMap.get(Servo.class, "Hood1");
-    //    Hood2 = hwMap.get(Servo.class, "Hood2");
+        Hood1 = hwMap.get(Servo.class, "Hood1");
+        Hood2 = hwMap.get(Servo.class, "Hood2");
         shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
