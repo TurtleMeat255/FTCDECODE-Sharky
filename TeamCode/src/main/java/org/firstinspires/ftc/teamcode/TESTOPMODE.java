@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
 public class TESTOPMODE extends LinearOpMode{
-//    FTCDriveTrain drivetrain = new FTCDriveTrain();
-//    Spinindexer spinindexer = new Spinindexer();
+    FTCDriveTrain drivetrain = new FTCDriveTrain();
+    Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
     IntakeCode intake = new IntakeCode();
 
@@ -32,8 +32,8 @@ public class TESTOPMODE extends LinearOpMode{
 
     @Override
     public void runOpMode() {
-//        drivetrain.init(hardwareMap);
-//        spinindexer.init(hardwareMap);
+        drivetrain.init(hardwareMap);
+        spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
         nudger = hardwareMap.get(Servo.class, "nudger");
         nudger.setDirection(Servo.Direction.REVERSE);

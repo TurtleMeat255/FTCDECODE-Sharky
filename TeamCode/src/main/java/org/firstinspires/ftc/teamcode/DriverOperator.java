@@ -53,10 +53,10 @@ public class DriverOperator extends LinearOpMode{
 
             // Shoot stuff ahhh code.
             if (gamepad2.a) {
-                shooter.ShootStuff(true);
+                shooter.ActivateShooter(true);
             }
             else {
-                shooter.ShootStuff(false);
+                shooter.ActivateShooter(false);
             }
             if (!coloringRn && spinindexer.isItDown()) {
                 if (shootAPurple && !intakeAligned && spinindexer.withinRange(inputAngle)) {
