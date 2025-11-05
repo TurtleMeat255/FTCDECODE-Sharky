@@ -88,18 +88,18 @@ public class Shooter {
         shooter1.setPower(input);
         shooter2.setPower(input);
     }
-    public void HoodStuff(boolean HoodUp, boolean HoodDown) {
-        if (HoodUp && !LastUp && position <= 0.6) {
-            position += 0.2;
-        }
-        if (HoodDown && !LastDown && position >= 0.2) {
-            position -= 0.2;
-        }
-        // Random comment
-
-        LastDown = HoodDown;
-        LastUp = HoodUp;
-       Hood1.setPosition(position);
-       Hood2.setPosition(position);
-   }
+//    public void HoodStuff(boolean HoodUp, boolean HoodDown) {
+//        if (HoodUp && !LastUp && position <= 0.6) {
+//            position += 0.2;
+//        }
+//        if (HoodDown && !LastDown && position >= 0.2) {
+//            position -= 0.2;
+//        }
+//        // Random comment
+//
+//        LastDown = HoodDown;
+//        LastUp = HoodUp;
+//        Hood1.setPosition(position);
+//        Hood2.setPosition(position);
+//    }
 }
