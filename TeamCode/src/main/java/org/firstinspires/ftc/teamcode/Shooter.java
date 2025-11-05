@@ -1,13 +1,15 @@
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Shooter {
-    DcMotor shooter1;
-    DcMotor shooter2;
+    DcMotorEx shooter1;
+    DcMotorEx shooter2;
     Servo Hood1;
     Servo Hood2;
     boolean LastUp = false;
@@ -27,12 +29,15 @@ public class Shooter {
     double encoderResolution = 28;
 
     public void init(HardwareMap hwMap) {
-        shooter1 = hwMap.get(DcMotor.class, "Shooter1"); //
-        shooter2 = hwMap.get(DcMotor.class, "Shooter2");
+        shooter1 = hwMap.get(DcMotorEx.class, "Shooter1"); //
+        shooter2 = hwMap.get(DcMotorEx.class, "Shooter2");
         Hood1 = hwMap.get(Servo.class, "Hood1");
         Hood2 = hwMap.get(Servo.class, "Hood2");
-        shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        shooter1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
+                new PIDFCoefficients(kp,0,kd,0.2));
+        shooter2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
+                new PIDFCoefficients(kp,0,kd,0.2));
 
         shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
     //    Hood1.setDirection(Servo.Direction.REVERSE);
@@ -52,42 +57,36 @@ public class Shooter {
 
     public void FireAtRPM(int rpm)
     {
-        double dx = dt.milliseconds();
-
-        double currentRPM = (shooter1.getCurrentPosition() / encoderResolution - lastEncoder) / dx;
-
-        double error = rpm-currentRPM;
-
-        double derivative = (error - lastRPMERR) / dx;
-        double proportional = error;
-
-        lastEncoder = shooter1.getCurrentPosition() / encoderResolution;
-        lastRPMERR = error;
-
-        double output = proportional * kp + derivative * kd;
-
-        output /= 8400; // normalize into 0-1 range
-
-        // creates feedforward just to make sure it still moves
-        if (output < 0.2)
-        {
-            output = 0.2;
-        }
-        else if (output > 1)
-        {
-            output = 1;
-        }
-
-        SetPowerPID(output);
-
-        dt.reset();
+        double outputVel = rpm * encoderResolution/60;
+        shooter1.setVelocity(outputVel);
+        shooter2.setVelocity(outputVel);
     }
 
-    private void SetPowerPID(double input)
-    {
-        shooter1.setPower(input);
-        shooter2.setPower(input);
-    }
+//    public void FireAtRPM(int rpm)
+//    {
+//        double dx = dt.milliseconds();
+//
+//        double currentRPM = (shooter1.getCurrentPosition() / encoderResolution - lastEncoder) / dx;
+//        double error = rpm - currentRPM;
+//
+//        double derivative = (error - lastRPMERR) / dx;
+//        double proportional = error;
+//
+//        lastEncoder = shooter1.getCurrentPosition() / encoderResolution;
+//        lastRPMERR = error;
+//
+//        double output = proportional * kp + derivative * kd;
+//
+//        SetPowerPID(output);
+//
+//        dt.reset();
+//    }
+
+//    private void SetPowerPID(double input)
+//    {
+//        shooter1.setPower(input);
+//        shooter2.setPower(input);
+//    }
 //    public void HoodStuff(boolean HoodUp, boolean HoodDown) {
 //        if (HoodUp && !LastUp && position <= 0.6) {
 //            position += 0.2;
