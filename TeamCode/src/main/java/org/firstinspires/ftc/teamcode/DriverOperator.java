@@ -6,6 +6,7 @@ public class DriverOperator extends LinearOpMode{
     FTCDriveTrain drivetrain = new FTCDriveTrain();
     Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
+    IntakeCode intake = new IntakeCode();
     public double inputAngle = 0;
     public boolean intakeAligned = true;
     boolean lastShooterLeft = false;
@@ -21,6 +22,7 @@ public class DriverOperator extends LinearOpMode{
         drivetrain.init(hardwareMap);
         spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
+        intake.init(hardwareMap);
 
         // I wanna know if initialization is complete.
         telemetry.addData("Status", "Robot is Initialized");
@@ -50,6 +52,9 @@ public class DriverOperator extends LinearOpMode{
             // Drivetrain
             drivetrain.Translate(x,y,rx,options);
             shooter.HoodStuff(Hoodup, Hooddown);
+
+            //intake i forgot
+            intake.ActivateIntake(gamepad1.a, gamepad1.b);
 
             // Shoot stuff ahhh code.
             if (gamepad2.a) {

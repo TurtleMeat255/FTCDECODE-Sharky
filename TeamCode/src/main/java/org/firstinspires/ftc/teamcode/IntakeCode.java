@@ -25,7 +25,7 @@ public class IntakeCode {
         this.intake1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
-    public void ActivateIntake(boolean shouldRun) { // ✅ FIX 2: Use a clear parameter name.
+    public void ActivateIntake(boolean shouldRun, boolean shouldReverse) { // ✅ FIX 2: Use a clear parameter name.
         // First, check if init() was called to prevent a crash.
         if (this.intake1 == null) {
             return;
@@ -34,8 +34,10 @@ public class IntakeCode {
         if (shouldRun) {
             // Run the intake at full power.
             this.intake1.setPower(1);
-        } else {
+        } else if (shouldReverse){
             // Stop the intake.
+            this.intake1.setPower(-1);
+        } else {
             this.intake1.setPower(0);
         }
     }
