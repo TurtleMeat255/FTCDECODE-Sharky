@@ -25,6 +25,9 @@ public class TESTOPMODE extends LinearOpMode{
     boolean coloringRn = false;
     int colorIWant = 0; // 0 = no color, 1 = green, 2 = purple
     int ticker = 0;
+ // And these for the nudger
+    boolean pushUp; // This will be set by your logic
+    boolean pushDown;
 
     private double encoderResolution = 145.6f;
     boolean canMove = true;
@@ -44,7 +47,7 @@ public class TESTOPMODE extends LinearOpMode{
         spindexer.setTargetPosition(0);
         spindexer.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-//        intake = hardwareMap.get(DcMotor.class, "intake");
+        intake1 = hardwareMap.get(DcMotor.class, "intake");
 
         // I wanna know if initialization is complete.
         telemetry.addData("Status", "Robot is Initialized");
@@ -53,6 +56,14 @@ public class TESTOPMODE extends LinearOpMode{
         waitForStart();
         while (opModeIsActive())
         {
+            boolean shooterLeft = gamepad1.dpad_left;
+            boolean shooterRight = gamepad1.dpad_right;
+            boolean intakeLeft = gamepad1.dpad_down;
+            boolean intakeRight = gamepad1.dpad_up;
+
+            // You will also need these for the color selection logic
+            boolean shootAPurple = gamepad2.x;
+            boolean shootAGreen = gamepad2.b;
 
             // Intake stuff ahhh code.
             if (gamepad1.a) {
@@ -87,15 +98,15 @@ public class TESTOPMODE extends LinearOpMode{
             telemetry.addData("nudger position", nudger.getPosition());
             telemetry.update();
 
-//            spindexer.setPower(0.1);
-//            if (gamepad2.x && canMove && canSwapMode) {
-//                spindexer.setTargetPosition(spindexer.getCurrentPosition() + (int)encoderResolution / 3);
-//                canMove = false;
-//            }
-//            else if (!gamepad2.x)
-//            {
-//                canMove = true;
-//            }
+            spindexer.setPower(0.1);
+            if (gamepad2.x && canMove && canSwapMode) {
+                spindexer.setTargetPosition(spindexer.getCurrentPosition() + (int)encoderResolution / 3);
+                canMove = false;
+            }
+            else if (!gamepad2.x)
+            {
+                canMove = true;
+            }
 
             if (gamepad2.b && canSwapMode) {
                 spindexer.setTargetPosition(spindexer.getCurrentPosition() + (int)encoderResolution / 6);
@@ -106,88 +117,86 @@ public class TESTOPMODE extends LinearOpMode{
                 canSwapMode = true;
             }
 
-//            intake.setPower(0.3);
-
-//            if (!coloringRn && spinindexer.isItDown()) {
-//                if (shootAPurple && !intakeAligned && spinindexer.withinRange(inputAngle)) {
-//                    colorIWant = 2;
-//                    coloringRn = true;
-//                    ticker = 0;
-//                }
-//                if (shootAGreen && !intakeAligned && spinindexer.withinRange(inputAngle)) {
-//                    colorIWant = 1;
-//                    coloringRn = true;
-//                    ticker = 0;
-//                }
-//            }
-//            if (!coloringRn) {
-//                if (spinindexer.isItDown()) {
-//                    if (shooterLeft && !lastShooterLeft) {
-//                        if (intakeAligned) {
-//                            inputAngle += 60;
-//                            intakeAligned = !intakeAligned;
-//                        } else {
-//                            inputAngle += 120;
-//                        }
-//                    }
-//                    if (shooterRight && !lastShooterRight) {
-//                        if (intakeAligned) {
-//                            inputAngle -= 60;
-//                            intakeAligned = !intakeAligned;
-//                        } else {
-//                            inputAngle -= 120;
-//                        }
-//                    }
-//                    if (intakeLeft && !lastIntakeLeft) {
-//                        if (intakeAligned) {
-//                            inputAngle += 120;
-//                        } else {
-//                            inputAngle += 60;
-//                            intakeAligned = !intakeAligned;
-//                        }
-//                    }
-//                    if (intakeRight && !lastIntakeRight) {
-//                        if (intakeAligned) {
-//                            inputAngle -= 120;
-//                        } else {
-//                            inputAngle -= 60;
-//                            intakeAligned = !intakeAligned;
-//                        }
-//                    }
-//                }
-//            }
-//            if (coloringRn) {
-//                if (spinindexer.withinRange(inputAngle)) {
-//                    if (spinindexer.colorDetected() == colorIWant) {
-//                            pushUp = true;
-//                            coloringRn = false;
-//                    } else {
-//                        pushUp = false;
-//                        ticker += 1;
-//                        if (ticker == 2) {
-//                            coloringRn = false;
-//                        } else {
-//                            inputAngle += 120;
-//                        }
-//                    }
-//                }
-//            }
+            if (!coloringRn && spinindexer.isItDown()) {
+                if (shootAPurple && !intakeAligned && spinindexer.withinRange(inputAngle)) {
+                    colorIWant = 2;
+                    coloringRn = true;
+                    ticker = 0;
+                }
+                if (shootAGreen && !intakeAligned && spinindexer.withinRange(inputAngle)) {
+                    colorIWant = 1;
+                    coloringRn = true;
+                    ticker = 0;
+                }
+            }
+            if (!coloringRn) {
+                if (spinindexer.isItDown()) {
+                    if (shooterLeft && !lastShooterLeft) {
+                        if (intakeAligned) {
+                            inputAngle += 60;
+                            intakeAligned = !intakeAligned;
+                        } else {
+                            inputAngle += 120;
+                        }
+                    }
+                    if (shooterRight && !lastShooterRight) {
+                        if (intakeAligned) {
+                            inputAngle -= 60;
+                            intakeAligned = !intakeAligned;
+                        } else {
+                            inputAngle -= 120;
+                        }
+                    }
+                    if (intakeLeft && !lastIntakeLeft) {
+                        if (intakeAligned) {
+                            inputAngle += 120;
+                        } else {
+                            inputAngle += 60;
+                            intakeAligned = !intakeAligned;
+                        }
+                    }
+                    if (intakeRight && !lastIntakeRight) {
+                        if (intakeAligned) {
+                            inputAngle -= 120;
+                        } else {
+                            inputAngle -= 60;
+                            intakeAligned = !intakeAligned;
+                        }
+                    }
+                }
+            }
+            if (coloringRn) {
+                if (spinindexer.withinRange(inputAngle)) {
+                    if (spinindexer.colorDetected() == colorIWant) {
+                            pushUp = true;
+                            coloringRn = false;
+                    } else {
+                        pushUp = false;
+                        ticker += 1;
+                        if (ticker == 2) {
+                            coloringRn = false;
+                        } else {
+                            inputAngle += 120;
+                        }
+                    }
+                }
+            }
 
 
 
-//            lastIntakeRight = intakeRight;
-//            lastShooterLeft = shooterLeft;
-//            lastIntakeLeft = intakeLeft;
-//            lastShooterRight = shooterRight;
-//            spinindexer.PID(inputAngle);
+            lastIntakeRight = intakeRight;
+            lastShooterLeft = shooterLeft;
+            lastIntakeLeft = intakeLeft;
+            lastShooterRight = shooterRight;
+            spinindexer.PID(inputAngle);
 
-//            if (!spinindexer.withinRange(inputAngle)) {
-//                pushUp = false;
-//            }
-//            if (intakeAligned) {
-//                pushUp = false;
-//            }
-//            spinindexer.nudging(pushUp, pushDown);
+            if (!spinindexer.withinRange(inputAngle)) {
+                pushUp = false;
+            }
+            if (intakeAligned) {
+                pushUp = false;
+            }
+            spinindexer.nudging(pushUp, pushDown);
         }
     }
 }

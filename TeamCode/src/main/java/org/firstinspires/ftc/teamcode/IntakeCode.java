@@ -1,33 +1,51 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
 
 public class IntakeCode {
 
+    // The single DcMotor variable for this class.
     private DcMotor intake1;
 
 
     public void init(HardwareMap hwMap) {
-        // Declare Intake Motor
-        DcMotor intake1;
+        // ✅ FIX 1: Assign to the class variable, don't declare a new one.
+        // The "this." prefix makes it clear you're using the class-level variable.
+        this.intake1 = hwMap.get(DcMotor.class, "intake");
 
-        intake1 = hwMap.get(DcMotor.class, "intake");
-        // Set brake mode when power = 0
-        intake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        // Set the motor direction. You might need to change this to REVERSE.
+        this.intake1.setDirection(DcMotorSimple.Direction.FORWARD);
 
+        // Set brake mode, so the motor actively stops instead of coasting.
+        this.intake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        // Run without encoders since we are just setting power.
+        this.intake1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
-    public void ActivateIntake(boolean intake1) {
-        if (intake1) {
-            this.intake1.setPower(1);
+    public void ActivateIntake(boolean shouldRun) { // ✅ FIX 2: Use a clear parameter name.
+        // First, check if init() was called to prevent a crash.
+        if (this.intake1 == null) {
+            return;
         }
-        else {
+
+        if (shouldRun) {
+            // Run the intake at full power.
+            this.intake1.setPower(1);
+        } else {
+            // Stop the intake.
             this.intake1.setPower(0);
         }
     }
 
+
+    public void reverse() {
+        if (this.intake1 != null) {
+            this.intake1.setPower(-1.0);
+        }
+    }
 }
+
 
