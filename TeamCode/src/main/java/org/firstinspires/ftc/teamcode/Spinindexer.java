@@ -17,7 +17,7 @@ public class Spinindexer {
     private final double kd = 0;
     private double lastError = 0;
     private double integralSum = 0;
-    private double nudgyPosition = 0;
+    private static double nudgyPosition = 0;
     private final double greenHue = 0;
     private final double purpleHue = 0;
     private final double colorRange = 0;
