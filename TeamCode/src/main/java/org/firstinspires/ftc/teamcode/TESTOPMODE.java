@@ -32,14 +32,17 @@ public class TESTOPMODE extends LinearOpMode{
     private double encoderResolution = 145.6f;
     boolean canMove = true;
     boolean canSwapMode = true;
+    boolean swapping = false;
+    double servoPos = 0;
 
     @Override
     public void runOpMode() {
         drivetrain.init(hardwareMap);
+//        intake.init(hardwareMap);
 //        spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
         nudger = hardwareMap.get(Servo.class, "nudger");
-        nudger.setDirection(Servo.Direction.REVERSE);
+        nudger.setDirection(Servo.Direction.REVERSE );
 
         spindexer = hardwareMap.get(DcMotor.class, "spinner");
 
@@ -66,40 +69,63 @@ public class TESTOPMODE extends LinearOpMode{
             boolean shootAGreen = gamepad2.b;
 
             // Intake stuff ahhh code.
-            if (gamepad1.a) {
-                intake.ActivateIntake(true, false);
+//            if (gamepad2.x) {
+//                intake.ActivateIntake(true, false);
+//            }
+//            else {
+//                intake.ActivateIntake(false, false);
+//            }
+
+            if (gamepad2.x)
+            {
+                intake1.setPower(-0.6);
             }
-            else {
-                intake.ActivateIntake(false, false);
+            else
+            {
+                intake1.setPower(0);
             }
 
             // Shoot stuff ahhh code.
-            if (gamepad2.a) {
-                shooter.ActivateShooter(true);
-            }
-            else if (gamepad1.a)
+//            if (gamepad2.a) {
+//                shooter.ActivateShooter(true);
+//            }
+//            else if (gamepad1.a)
+//            {
+//                shooter.FireAtRPM(6000);
+//            }
+//            else {
+//                shooter.ActivateShooter(false);
+//            }
+
+            if (gamepad2.y)
             {
-                shooter.FireAtRPM(6000);
+                nudger.setPosition(0.35);
             }
-            else {
-                shooter.ActivateShooter(false);
+            else
+            {
+                nudger.setPosition(0.05);
             }
 
-            if (gamepad2.y){
-                nudger.setPosition(0.25);
+            if (gamepad2.a)
+            {
+                nudger.setPosition(0.1);
             }
-            else {
-                nudger.setPosition(0);
-            }
+
+//            nudger.setPosition(servoPos);
 
             telemetry.addData("nudger position", nudger.getPosition());
+            telemetry.addData("spindexer pos", spindexer.getCurrentPosition());
             telemetry.update();
 
-            telemetry.addData("nudger position", nudger.getPosition());
-            telemetry.update();
 
-
-            spindexer.setPower(0.1);
+            if (gamepad2.b)
+            {
+                spindexer.setPower(0.2);
+            }
+            else
+            {
+                spindexer.setPower(0);
+            }
             /*
             if (gamepad2.x && canMove && canSwapMode) {
                 spindexer.setTargetPosition(spindexer.getCurrentPosition() + (int)encoderResolution / 3);

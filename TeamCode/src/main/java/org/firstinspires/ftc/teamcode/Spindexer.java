@@ -81,7 +81,7 @@ public class Spindexer {
 
     public void init(HardwareMap hwMap) {
         spindexerMotor = hwMap.get(DcMotor.class, "spindexerMotor");
-        spindexerMotor.setDirection(DcMotor.Direction.FORWARD); //Idk if forward works or not. Can reverse if needed
+        spindexerMotor.setDirection(DcMotor.Direction.REVERSE); //Idk if forward works or not. Can reverse if needed
         spindexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // To use our own encoder
         spindexerMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Calculate power ourselves
         spindexerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -118,7 +118,7 @@ public class Spindexer {
                 resetAndGo();
 
                 currentState = SpindexerState.EnteringOrLeaving;
-                break;
+                 break;
 
 
             case Searching_For_Color:

@@ -25,7 +25,7 @@ public class JacobSpindexer
 
     // pid
     ElapsedTime dt = new ElapsedTime();
-    double kp,kd = 0;
+    double kp,ki,kd = 0;
     double currentPIDOutput = 0;
     double lastError = 0;
 
@@ -38,6 +38,8 @@ public class JacobSpindexer
     // speed config
     double spindexerSpeed = 0.1;
 
+    double integral = 0;
+
     public void init(HardwareMap hwMap)
     {
         spinMotor = hwMap.get(DcMotor.class, "spinMotor");
@@ -48,16 +50,17 @@ public class JacobSpindexer
     }
 
     // not using i term
-    private double PID(int target, int setpoint)
+    private double PID(int setpoint, int process)
     {
-        double error = target - setpoint;
+        double error = setpoint - process;
         double derivative = (error - lastError)/dt.milliseconds();
+
+        integral += error * dt.milliseconds();
 
         dt.reset();
 
         lastError = error;
-        double output = error * kp + derivative * kd;
-        return output;
+        return error * kp + integral * ki + derivative * kd;
     }
 
     public void ColorShooter(boolean isPurple)
