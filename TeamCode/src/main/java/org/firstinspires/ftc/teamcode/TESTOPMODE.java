@@ -36,16 +36,16 @@ public class TESTOPMODE extends LinearOpMode{
     @Override
     public void runOpMode() {
         drivetrain.init(hardwareMap);
-        spinindexer.init(hardwareMap);
+//        spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
         nudger = hardwareMap.get(Servo.class, "nudger");
         nudger.setDirection(Servo.Direction.REVERSE);
 
-        spindexer = hardwareMap.get(DcMotor.class, "spindexer");
+        spindexer = hardwareMap.get(DcMotor.class, "spinner");
 
         spindexer.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         spindexer.setTargetPosition(0);
-        spindexer.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        spindexer.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         intake1 = hardwareMap.get(DcMotor.class, "intake");
 
@@ -98,7 +98,9 @@ public class TESTOPMODE extends LinearOpMode{
             telemetry.addData("nudger position", nudger.getPosition());
             telemetry.update();
 
+
             spindexer.setPower(0.1);
+            /*
             if (gamepad2.x && canMove && canSwapMode) {
                 spindexer.setTargetPosition(spindexer.getCurrentPosition() + (int)encoderResolution / 3);
                 canMove = false;
@@ -197,6 +199,8 @@ public class TESTOPMODE extends LinearOpMode{
                 pushUp = false;
             }
             spinindexer.nudging(pushUp, pushDown);
+
+             */
         }
     }
 }

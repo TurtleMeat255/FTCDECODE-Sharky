@@ -12,12 +12,13 @@ public class Spinindexer {
     private final ElapsedTime sinceMadeDown = new ElapsedTime();
     private int currentTicks = 0;
     private double currentAngle = 360 * currentTicks/145.6;
-    private final double kp = 0;
+    private final double kp = 0.005;
     private final double ki = 0;
     private final double kd = 0;
     private double lastError = 0;
     private double integralSum = 0;
     private static double nudgyPosition = 0;
+    private final double nudgerTime = 2000;
     private final double greenHue = 0;
     private final double purpleHue = 0;
     private final double colorRange = 0;
@@ -60,7 +61,7 @@ public class Spinindexer {
     }
     public void nudging(boolean nudgeUp, boolean nudgeDown) {
         if (nudgeUp) {
-            nudgyPosition = 1;
+            nudgyPosition = 0.25;
         }
         if (nudgeDown) {
             nudgyPosition = 0;
@@ -69,7 +70,7 @@ public class Spinindexer {
         nudger.setPosition(nudgyPosition);
     }
     public boolean isItDown() {
-        if (sinceMadeDown.milliseconds() > 2000 && nudgyPosition == 0) {
+        if (sinceMadeDown.milliseconds() > nudgerTime && nudgyPosition == 0) {
             return true;
         } else {
             return false;
@@ -104,5 +105,8 @@ public class Spinindexer {
         }
         spinner.setPower(power);
         PIDTimer.reset();
+    }
+    public void runNudger(double input) {
+        nudger.setPosition(input);
     }
 }
