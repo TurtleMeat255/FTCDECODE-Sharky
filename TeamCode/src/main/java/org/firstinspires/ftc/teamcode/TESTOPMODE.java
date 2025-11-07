@@ -59,6 +59,10 @@ public class TESTOPMODE extends LinearOpMode{
         waitForStart();
         while (opModeIsActive())
         {
+            double xPos = gamepad1.left_stick_x;
+            double yPos = -gamepad1.left_stick_y;
+            double rot = gamepad1.right_stick_x;
+
             boolean shooterLeft = gamepad1.dpad_left;
             boolean shooterRight = gamepad1.dpad_right;
             boolean intakeLeft = gamepad1.dpad_down;
@@ -76,6 +80,8 @@ public class TESTOPMODE extends LinearOpMode{
 //                intake.ActivateIntake(false, false);
 //            }
 
+            drivetrain.Translate(xPos,yPos,rot,intakeRight);
+
             if (gamepad2.x)
             {
                 intake1.setPower(-0.6);
@@ -86,16 +92,16 @@ public class TESTOPMODE extends LinearOpMode{
             }
 
             // Shoot stuff ahhh code.
-//            if (gamepad2.a) {
-//                shooter.ActivateShooter(true);
-//            }
-//            else if (gamepad1.a)
-//            {
-//                shooter.FireAtRPM(6000);
-//            }
-//            else {
-//                shooter.ActivateShooter(false);
-//            }
+            if (gamepad2.a) {
+                shooter.ActivateShooter(true);
+            }
+            else if (gamepad1.a)
+            {
+                shooter.FireAtRPM(6000);
+            }
+            else {
+                shooter.ActivateShooter(false);
+            }
 
             if (gamepad2.y)
             {
@@ -104,11 +110,6 @@ public class TESTOPMODE extends LinearOpMode{
             else
             {
                 nudger.setPosition(0.05);
-            }
-
-            if (gamepad2.a)
-            {
-                nudger.setPosition(0.1);
             }
 
 //            nudger.setPosition(servoPos);
