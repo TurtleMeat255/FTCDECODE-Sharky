@@ -84,6 +84,12 @@ public class Spinindexer {
             return false;
         }
     }
+
+    public void SpindexerPower(double power)
+    {
+        spinner.setPower(power);
+    }
+
     public void PID(double targetAngle) {
         currentTicks = spinner.getCurrentPosition();
         currentAngle = 360 * currentTicks/encoderResolution;
