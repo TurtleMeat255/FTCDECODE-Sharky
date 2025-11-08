@@ -62,9 +62,11 @@ public class TESTOPMODE extends LinearOpMode{
         waitForStart();
         while (opModeIsActive())
         {
-            double xPos = -gamepad1.left_stick_x;
-            double yPos = gamepad1.left_stick_y;
+            double xPos = gamepad1.left_stick_x;
+            double yPos = -gamepad1.left_stick_y;
             double rot = gamepad1.right_stick_x;
+
+            boolean resetButton = gamepad1.a;
 
             boolean shooterLeft = gamepad2.dpad_left;
             boolean shooterRight = gamepad2.dpad_right;
@@ -85,7 +87,7 @@ public class TESTOPMODE extends LinearOpMode{
 //                intake.ActivateIntake(false, false);
 //            }
 
-            drivetrain.Translate(xPos,yPos,rot,intakeRight);
+            drivetrain.Translate(xPos,yPos,rot,resetButton);
 
             if (gamepad2.x)
             {

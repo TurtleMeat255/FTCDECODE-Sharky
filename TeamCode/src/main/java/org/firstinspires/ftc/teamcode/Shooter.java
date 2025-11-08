@@ -51,7 +51,6 @@ public class Shooter {
     }
 
 
-
     public void FireAtRPM(int rpm)
     {
         double dx = dt.milliseconds();
