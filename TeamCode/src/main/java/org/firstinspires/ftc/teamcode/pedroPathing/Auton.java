@@ -112,7 +112,7 @@ public class Auton extends OpMode
 
                 //
 
-                if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
+                if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5 && timesShot != 3) {
                     if (pushed) {
                      targetAngle += 120;
                      pushed = false;
@@ -171,7 +171,7 @@ public class Auton extends OpMode
                 }
                 break;
             case 4:
-                if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
+                if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5 && timesShot != 3) {
                     if (pushed) {
                         targetAngle += 120;
                         pushed = false;
@@ -235,7 +235,7 @@ public class Auton extends OpMode
                 break;
             case 7:
                 //
-                if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
+                if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5 && timesShot != 3) {
                     if (pushed) {
                         targetAngle += 120;
                         pushed = false;

@@ -14,7 +14,7 @@ public class Shooter {
     boolean LastDown = false;
     static double position = 0;
 
-    double shooterSpeed = 1;
+    double shooterSpeed = 0.6;
 
     double lastEncoder = 0;
     double lastRPMERR = 0;

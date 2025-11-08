@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -12,26 +13,26 @@ public class Spinindexer {
     private final ElapsedTime sinceMadeDown = new ElapsedTime();
     private int currentTicks = 0;
     private double currentAngle = 360 * currentTicks/145.6;
-    private final double kp = 0.005;
+    private final double kp = 0.025; // 0.025
     private final double ki = 0;
-    private final double kd = 0;
+    private final double kd = 0.00075; // 0.00075
     private double lastError = 0;
     private double integralSum = 0;
-    private static double nudgyPosition = 0;
+    private static double nudgyPosition = 0.05;
     private final double nudgerTime = 2000;
     private final double greenHue = 0;
     private final double purpleHue = 0;
     private final double colorRange = 0;
     private double greenAngle = 0;
     private double purpleAngle = 0;
+    double encoderResolution = 537.7;
 
     public void init(HardwareMap hwMap) {
         spinner = hwMap.get(DcMotor.class, "spinner");
         nudger = hwMap.get(Servo.class, "nudger");
         colorSensor = hwMap.get(ColorSensor.class, "colorSensor");
         spinner.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        spinner.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
+        spinner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public int colorDetected() { // 1 = green, 2 = purple
@@ -61,23 +62,23 @@ public class Spinindexer {
     }
     public void nudging(boolean nudgeUp, boolean nudgeDown) {
         if (nudgeUp) {
-            nudgyPosition = 0.25;
+            nudgyPosition = 0.35;
         }
         if (nudgeDown) {
-            nudgyPosition = 0;
+            nudgyPosition = 0.05;
             sinceMadeDown.reset();
         }
         nudger.setPosition(nudgyPosition);
     }
     public boolean isItDown() {
-        if (sinceMadeDown.milliseconds() > nudgerTime && nudgyPosition == 0) {
+        if (sinceMadeDown.milliseconds() > nudgerTime && nudgyPosition == 0.05) {
             return true;
         } else {
             return false;
         }
     }
     public boolean withinRange (double targetThing) {
-        if (Math.abs(360 * spinner.getCurrentPosition()/145.6 - targetThing) <= 5) {
+        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) <= 5) {
             return true;
         } else {
             return false;
@@ -85,7 +86,7 @@ public class Spinindexer {
     }
     public void PID(double targetAngle) {
         currentTicks = spinner.getCurrentPosition();
-        currentAngle = 360 * currentTicks/145.6;
+        currentAngle = 360 * currentTicks/encoderResolution;
         double error = currentAngle - targetAngle;
         double derivative;
         if (PIDTimer.seconds() > 0) {
@@ -103,7 +104,7 @@ public class Spinindexer {
         if (power <= -1) {
             power = -1;
         }
-        spinner.setPower(power);
+        spinner.setPower(power * -0.3);
         PIDTimer.reset();
     }
     public void runNudger(double input) {

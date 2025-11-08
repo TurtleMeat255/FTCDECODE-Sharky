@@ -90,7 +90,7 @@ public class Auton2 extends OpMode
 
     public void autonomousPathUpdate() {
         if (nudgePosition == 0.25 && sinceHighered.getElapsedTimeSeconds() > 0.5) {
-            nudgePosition = 0;
+            nudgePosition = 0.05;
             sinceLowered.resetTimer();
             timesShot++;
         }

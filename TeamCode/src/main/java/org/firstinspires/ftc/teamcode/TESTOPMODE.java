@@ -3,6 +3,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp
 public class TESTOPMODE extends LinearOpMode{
@@ -15,6 +16,8 @@ public class TESTOPMODE extends LinearOpMode{
     DcMotor spindexer = null;
 
     DcMotor intake1 = null;
+
+    ElapsedTime dt = new ElapsedTime();
 
     public double inputAngle = 0;
     public boolean intakeAligned = true;
@@ -39,7 +42,7 @@ public class TESTOPMODE extends LinearOpMode{
     public void runOpMode() {
         drivetrain.init(hardwareMap);
 //        intake.init(hardwareMap);
-//        spinindexer.init(hardwareMap);
+        spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
         nudger = hardwareMap.get(Servo.class, "nudger");
         nudger.setDirection(Servo.Direction.REVERSE );
@@ -59,14 +62,16 @@ public class TESTOPMODE extends LinearOpMode{
         waitForStart();
         while (opModeIsActive())
         {
-            double xPos = gamepad1.left_stick_x;
-            double yPos = -gamepad1.left_stick_y;
+            double xPos = -gamepad1.left_stick_x;
+            double yPos = gamepad1.left_stick_y;
             double rot = gamepad1.right_stick_x;
 
-            boolean shooterLeft = gamepad1.dpad_left;
-            boolean shooterRight = gamepad1.dpad_right;
-            boolean intakeLeft = gamepad1.dpad_down;
-            boolean intakeRight = gamepad1.dpad_up;
+            boolean shooterLeft = gamepad2.dpad_left;
+            boolean shooterRight = gamepad2.dpad_right;
+            boolean intakeLeft = gamepad2.dpad_down;
+            boolean intakeRight = gamepad2.dpad_up;
+
+            double spindexerManual = gamepad2.right_stick_x;
 
             // You will also need these for the color selection logic
             boolean shootAPurple = gamepad2.x;
@@ -112,13 +117,77 @@ public class TESTOPMODE extends LinearOpMode{
                 nudger.setPosition(0.05);
             }
 
-//            nudger.setPosition(servoPos);
+            if (shooterLeft && !lastShooterLeft)
+            {
+                inputAngle += 60;
+            }
+            if (shooterRight && !lastShooterRight)
+            {
+                inputAngle -= 60;
+            }
+            if (intakeLeft && !lastIntakeLeft)
+            {
+                inputAngle += 120;
+            }
+            if (intakeRight && !lastIntakeRight)
+            {
+                inputAngle -= 120;
+            }
+
+            if (Math.abs(spindexerManual) > 0.3)
+            {
+                inputAngle += spindexerManual * 60 * dt.seconds();
+            }
+
+            dt.reset();
+            /*
+            if (shooterLeft && !lastShooterLeft) {
+                if (intakeAligned) {
+                    inputAngle += 60;
+                    intakeAligned = !intakeAligned;
+                } else {
+                    inputAngle += 120;
+                }
+            }
+            if (shooterRight && !lastShooterRight) {
+                if (intakeAligned) {
+                    inputAngle -= 60;
+                    intakeAligned = !intakeAligned;
+                } else {
+                    inputAngle -= 120;
+                }
+            }
+
+            if (intakeLeft && !lastIntakeLeft) {
+                if (intakeAligned) {
+                    inputAngle += 120;
+                } else {
+                    inputAngle += 60;
+                    intakeAligned = !intakeAligned;
+                }
+            }
+            if (intakeRight && !lastIntakeRight) {
+                if (intakeAligned) {
+                    inputAngle -= 120;
+                } else {
+                    inputAngle -= 60;
+                    intakeAligned = !intakeAligned;
+                }
+            }
+             */
+            shooter.HoodStuff(gamepad2.left_bumper, gamepad2.right_bumper);
+            lastIntakeRight = intakeRight;
+            lastShooterLeft = shooterLeft;
+            lastIntakeLeft = intakeLeft;
+            lastShooterRight = shooterRight;
+            spinindexer.PID(inputAngle);
 
             telemetry.addData("nudger position", nudger.getPosition());
             telemetry.addData("spindexer pos", spindexer.getCurrentPosition());
+            telemetry.addData("input angle:", inputAngle);
             telemetry.update();
 
-
+/*
             if (gamepad2.b)
             {
                 spindexer.setPower(0.2);
@@ -126,7 +195,7 @@ public class TESTOPMODE extends LinearOpMode{
             else
             {
                 spindexer.setPower(0);
-            }
+            } */
             /*
             if (gamepad2.x && canMove && canSwapMode) {
                 spindexer.setTargetPosition(spindexer.getCurrentPosition() + (int)encoderResolution / 3);
@@ -157,43 +226,15 @@ public class TESTOPMODE extends LinearOpMode{
                     coloringRn = true;
                     ticker = 0;
                 }
-            }
-            if (!coloringRn) {
-                if (spinindexer.isItDown()) {
-                    if (shooterLeft && !lastShooterLeft) {
-                        if (intakeAligned) {
-                            inputAngle += 60;
-                            intakeAligned = !intakeAligned;
-                        } else {
-                            inputAngle += 120;
-                        }
-                    }
-                    if (shooterRight && !lastShooterRight) {
-                        if (intakeAligned) {
-                            inputAngle -= 60;
-                            intakeAligned = !intakeAligned;
-                        } else {
-                            inputAngle -= 120;
-                        }
-                    }
-                    if (intakeLeft && !lastIntakeLeft) {
-                        if (intakeAligned) {
-                            inputAngle += 120;
-                        } else {
-                            inputAngle += 60;
-                            intakeAligned = !intakeAligned;
-                        }
-                    }
-                    if (intakeRight && !lastIntakeRight) {
-                        if (intakeAligned) {
-                            inputAngle -= 120;
-                        } else {
-                            inputAngle -= 60;
-                            intakeAligned = !intakeAligned;
-                        }
-                    }
-                }
-            }
+            } */
+
+
+           /* spinindexer.nudging(gamepad2.y, gamepad2.b); */
+
+
+
+
+            /*
             if (coloringRn) {
                 if (spinindexer.withinRange(inputAngle)) {
                     if (spinindexer.colorDetected() == colorIWant) {
@@ -209,25 +250,19 @@ public class TESTOPMODE extends LinearOpMode{
                         }
                     }
                 }
-            }
+            } */
 
 
-
-            lastIntakeRight = intakeRight;
-            lastShooterLeft = shooterLeft;
-            lastIntakeLeft = intakeLeft;
-            lastShooterRight = shooterRight;
-            spinindexer.PID(inputAngle);
-
+/*
             if (!spinindexer.withinRange(inputAngle)) {
                 pushUp = false;
             }
             if (intakeAligned) {
                 pushUp = false;
             }
-            spinindexer.nudging(pushUp, pushDown);
+            spinindexer.nudging(pushUp, pushDown); */
 
-             */
+
         }
     }
 }
