@@ -45,7 +45,7 @@ public class TESTOPMODE extends LinearOpMode{
         spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
         nudger = hardwareMap.get(Servo.class, "nudger");
-        nudger.setDirection(Servo.Direction.REVERSE );
+        nudger.setDirection(Servo.Direction.REVERSE);
 
         spindexer = hardwareMap.get(DcMotor.class, "spinner");
 
