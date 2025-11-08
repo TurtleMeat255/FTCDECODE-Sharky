@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
+import com.qualcomm.hardware.limelightvision.LLFieldMap;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -17,7 +19,7 @@ public class AprilTagLimeLight extends OpMode {
     public void init() {
         limeLight = hardwareMap.get(Limelight3A.class, "limelight");
         Imu = hardwareMap.get(IMU.class, "Imu");
-        limeLight.pipelineSwitch(8); // ASK JACOB HOW TO FIX. IDK WHAT THIS IS. WE MIGHT NEED TWO FOR BOTH COLOR SENSING AND APRIL TAG DETECTION
+        limeLight.pipelineSwitch(0); // ASK JACOB HOW TO FIX. IDK WHAT THIS IS. WE MIGHT NEED TWO FOR BOTH COLOR SENSING AND APRIL TAG DETECTION
         RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
                 RevHubOrientationOnRobot.UsbFacingDirection.UP);
@@ -36,8 +38,11 @@ public class AprilTagLimeLight extends OpMode {
         limeLight.updateRobotOrientation(orientation.getYaw());
         LLResult llresult = limeLight.getLatestResult();
 
+        LLResultTypes.FiducialResult fiducial = (LLResultTypes.FiducialResult) llresult.getFiducialResults();
+
         if (llresult != null && llresult.isValid()) {
             Pose3D botPose = llresult.getBotpose_MT2();
+            telemetry.addData("id", fiducial.getFiducialId());
             telemetry.addData("Tx", llresult.getTx());
             telemetry.addData("Ty", llresult.getTy());
             telemetry.addData("Target Area", llresult.getTa());
