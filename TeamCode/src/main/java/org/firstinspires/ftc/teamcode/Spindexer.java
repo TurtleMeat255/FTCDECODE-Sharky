@@ -213,12 +213,13 @@ public class Spindexer {
         double error = targetPosition - currentPosition;
 
         double dt = PIDTimer.seconds();
-        PIDTimer.reset();
 
         double derivative = (dt > 0) ? (error - lastError) / dt : 0;
         integralSum += error * dt;
 
         lastError = error;
+
+        PIDTimer.reset();
 
         double power = (kp * error) + (ki * integralSum) + (kd * derivative);
 
