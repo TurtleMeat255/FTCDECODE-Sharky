@@ -18,7 +18,7 @@ public class AprilTagLimeLight extends OpMode {
     public void init() {
         limeLight = hardwareMap.get(Limelight3A.class, "limelight");
         Imu = hardwareMap.get(IMU.class, "Imu");
-        limeLight.pipelineSwitch(8); // ASK JACOB HOW TO FIX. IDK WHAT THIS IS. WE MIGHT NEED TWO FOR BOTH COLOR SENSING AND APRIL TAG DETECTION
+        limeLight.pipelineSwitch(0); // ASK JACOB HOW TO FIX. IDK WHAT THIS IS. WE MIGHT NEED TWO FOR BOTH COLOR SENSING AND APRIL TAG DETECTION
         RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
                 RevHubOrientationOnRobot.UsbFacingDirection.UP);
@@ -45,6 +45,16 @@ public class AprilTagLimeLight extends OpMode {
             telemetry.addData("Ty", llresult.getTy());
             telemetry.addData("Target Area", llresult.getTa());
             telemetry.addData("id", fiducial.getFiducialId());
+
+            if (fiducial.getFiducialId() == 21) {
+                //run code
+            } else if (fiducial.getFiducialId() == 22) {
+                // run code
+            } else if (fiducial.getFiducialId() == 23) {
+                // run code
+            }
+
+
         }
 
         telemetry.update();

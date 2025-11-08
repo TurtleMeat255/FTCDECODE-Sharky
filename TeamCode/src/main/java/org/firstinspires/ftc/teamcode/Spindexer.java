@@ -212,8 +212,8 @@ public class Spindexer {
         int currentPosition = spindexerMotor.getCurrentPosition();
         double error = targetPosition - currentPosition;
 
-        double dt = PIDTimer.seconds();   // ✅ store delta time once
-        PIDTimer.reset();                 // ✅ reset for next iteration
+        double dt = PIDTimer.seconds();
+        PIDTimer.reset();
 
         double derivative = (dt > 0) ? (error - lastError) / dt : 0;
         integralSum += error * dt;
