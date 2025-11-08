@@ -14,7 +14,7 @@ public class Shooter {
     boolean LastDown = false;
     static double position = 0;
 
-    double shooterSpeed = 0.6;
+    double shooterSpeed = 0.7;
 
     double lastEncoder = 0;
     double lastRPMERR = 0;
@@ -49,6 +49,8 @@ public class Shooter {
             shooter2.setPower(0);
         }
     }
+
+
 
     public void FireAtRPM(int rpm)
     {

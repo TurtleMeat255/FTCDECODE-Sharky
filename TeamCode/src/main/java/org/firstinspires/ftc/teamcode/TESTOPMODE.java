@@ -175,7 +175,7 @@ public class TESTOPMODE extends LinearOpMode{
                 }
             }
              */
-            shooter.HoodStuff(gamepad2.left_bumper, gamepad2.right_bumper);
+            //shooter.HoodStuff(gamepad2.left_bumper, false);
             lastIntakeRight = intakeRight;
             lastShooterLeft = shooterLeft;
             lastIntakeLeft = intakeLeft;
