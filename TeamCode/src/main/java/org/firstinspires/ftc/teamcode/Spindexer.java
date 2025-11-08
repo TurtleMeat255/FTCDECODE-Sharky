@@ -9,9 +9,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import android.graphics.Color;
 import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
-import com.qualcomm.robotcore.hardware.Servo;
 
 public class Spindexer {
     public DcMotor spindexerMotor = null;
@@ -51,7 +51,7 @@ public class Spindexer {
      * Tune PID coefficients for robot efficiency */
     public double kp = 0.1;
     public double ki = 0.0;
-    public double kd = 0.0;
+    public double kd = 0;
 
     private double integralSum = 0;
     private double lastError = 0;
@@ -70,7 +70,7 @@ public class Spindexer {
     // Variable to hold the hue we are currently looking for.
     private float targetHue = PURPLE_HUE;
 
-    private float encoderResolution = 145.6f;
+    private float encoderResolution = 537.7f;
 
     public boolean isIntake = true;
 

@@ -55,6 +55,8 @@ public class TESTOPMODE extends LinearOpMode{
 
         intake1 = hardwareMap.get(DcMotor.class, "intake");
 
+        shooter.SetShooterPower(0.7);
+
         // I wanna know if initialization is complete.
         telemetry.addData("Status", "Robot is Initialized");
         telemetry.update();
@@ -100,14 +102,18 @@ public class TESTOPMODE extends LinearOpMode{
 
             // Shoot stuff ahhh code.
             if (gamepad2.a) {
-                shooter.ActivateShooter(true);
+                shooter.ActivateShooter(true, false);
             }
             else if (gamepad1.a)
             {
                 shooter.FireAtRPM(6000);
             }
+
+            else if (gamepad2.left_bumper) {
+                shooter.ActivateShooter(false, true);
+            }
             else {
-                shooter.ActivateShooter(false);
+                shooter.ActivateShooter(false, false);
             }
 
             if (gamepad2.y)

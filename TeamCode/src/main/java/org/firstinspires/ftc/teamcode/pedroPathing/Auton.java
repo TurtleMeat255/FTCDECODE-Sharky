@@ -256,7 +256,7 @@ public class Auton extends OpMode
 
 
 
-        shooter.ActivateShooter(shooterOn);
+        shooter.ActivateShooter(shooterOn, false);
         intake.ActivateIntake(intakeOn, false);
         spinindexer.PID(targetAngle);
         spinindexer.runNudger(nudgePosition);

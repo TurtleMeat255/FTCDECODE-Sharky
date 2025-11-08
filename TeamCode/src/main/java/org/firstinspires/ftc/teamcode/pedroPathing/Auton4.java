@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Spinindexer;
 
 @Autonomous
-public class Auton3 extends LinearOpMode {
+public class Auton4 extends LinearOpMode {
     FTCDriveTrain dt = new FTCDriveTrain();
     Spinindexer spindexer = new Spinindexer();
     Shooter shooter = new Shooter();
@@ -37,7 +37,7 @@ public class Auton3 extends LinearOpMode {
 
         nudger = hardwareMap.get(Servo.class, "nudger");
         nudger.setDirection(Servo.Direction.REVERSE);
-        shooter.SetShooterPower(0.6);
+        shooter.SetShooterPower(0.75);
 
         waitForStart();
         while (opModeIsActive())
@@ -54,9 +54,9 @@ public class Auton3 extends LinearOpMode {
 //                spindexer.nudging(false, true);
 
                 sleep(1000);
-                while (!spindexer.withinRange(120))
+                while (!spindexer.withinRange(100))
                 {
-                    spindexer.PID(120);
+                    spindexer.PID(100);
                 }
                 spindexer.SpindexerPower(0);
                 sleep(500);

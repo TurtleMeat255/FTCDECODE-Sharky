@@ -23,17 +23,17 @@ public class Constants {
             .rightFrontEncoderDirection(Encoder.FORWARD)
             .rightRearEncoderDirection(Encoder.FORWARD)
             .robotWidth(11.2)
-            .robotLength(17.2);
-/*         Tune these later. Do 48 inches for both forward and strafe (left or right). and for .turnTicksToInches do 1 full counterclockwise rotation of the bot.
+            .robotLength(17.2)
 
-            .forwardTicksToInches()
-            .strafeTicksToInches()
-            .turnTicksToInches();
 
-*/
+            .forwardTicksToInches(6.777)
+            .strafeTicksToInches(0.981)
+            .turnTicksToInches(-0.944);
+
+
 
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(67); // tune this later
+            .mass(12.8); // tune this later
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)

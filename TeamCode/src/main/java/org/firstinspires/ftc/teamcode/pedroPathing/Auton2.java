@@ -328,7 +328,7 @@ public class Auton2 extends OpMode
                 }
                 break;
         }
-        shooter.ActivateShooter(shooterOn);
+        shooter.ActivateShooter(shooterOn, false);
         intake.ActivateIntake(intakeOn, false);
         spinindexer.PID(targetAngle);
     }

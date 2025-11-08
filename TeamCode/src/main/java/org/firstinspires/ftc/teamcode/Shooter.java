@@ -37,11 +37,16 @@ public class Shooter {
         shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
     //    Hood1.setDirection(Servo.Direction.REVERSE);
     }
-    public void ActivateShooter(boolean Shoot) {
+    public void ActivateShooter(boolean Shoot, boolean backShoot) {
         if (Shoot)
         {
             shooter1.setPower(shooterSpeed);
             shooter2.setPower(shooterSpeed);
+        }
+
+        else if (backShoot) {
+            shooter1.setPower(-shooterSpeed * 0.35);
+            shooter2.setPower(-shooterSpeed * 0.35);
         }
         else
         {
@@ -102,5 +107,10 @@ public class Shooter {
         LastUp = HoodUp;
         Hood1.setPosition(position);
         Hood2.setPosition(position);
+    }
+
+    public void SetShooterPower(double power)
+    {
+        shooterSpeed = power;
     }
 }
