@@ -81,6 +81,9 @@ public class TESTOPMODE extends LinearOpMode{
             boolean shootAPurple = gamepad2.x;
             boolean shootAGreen = gamepad2.b;
 
+            boolean hoodUp = gamepad2.right_bumper;
+            boolean hoodDown = gamepad2.left_bumper;
+
             // Intake stuff ahhh code.
 //            if (gamepad2.x) {
 //                intake.ActivateIntake(true, false);
@@ -89,7 +92,8 @@ public class TESTOPMODE extends LinearOpMode{
 //                intake.ActivateIntake(false, false);
 //            }
 
-            drivetrain.Translate(xPos,yPos,rot,resetButton);
+//            drivetrain.Translate(xPos,yPos,rot,resetButton);
+            drivetrain.RobotCentric(xPos,yPos,rot);
 
             if (gamepad2.x)
             {
@@ -100,22 +104,26 @@ public class TESTOPMODE extends LinearOpMode{
                 intake1.setPower(0);
             }
 
+            if (gamepad1.b)
+            {
+                intake1.setPower(0.6);
+            }
+
             // Shoot stuff ahhh code.
             if (gamepad2.a) {
                 shooter.ActivateShooter(true, false);
             }
-            else if (gamepad1.a)
+            else
             {
-                shooter.FireAtRPM(6000);
-            }
-
-            else if (gamepad2.left_bumper) {
-                shooter.ActivateShooter(false, true);
-            }
-            else {
                 shooter.ActivateShooter(false, false);
             }
 
+//            else if (gamepad2.left_bumper) {
+//                shooter.ActivateShooter(false, true);
+//            }
+//            else {
+//                shooter.ActivateShooter(false, false);
+//            }
             if (gamepad2.y)
             {
                 nudger.setPosition(0.35);
@@ -146,6 +154,8 @@ public class TESTOPMODE extends LinearOpMode{
             {
                 inputAngle += spindexerManual * 60 * dt.seconds();
             }
+
+            shooter.HoodStuff(hoodUp,hoodDown);
 
             dt.reset();
             /*
@@ -193,6 +203,7 @@ public class TESTOPMODE extends LinearOpMode{
             telemetry.addData("nudger position", nudger.getPosition());
             telemetry.addData("spindexer pos", spindexer.getCurrentPosition());
             telemetry.addData("input angle:", inputAngle);
+            telemetry.addData("hood position", shooter.GetHoodPosition());
             telemetry.update();
 
 /*

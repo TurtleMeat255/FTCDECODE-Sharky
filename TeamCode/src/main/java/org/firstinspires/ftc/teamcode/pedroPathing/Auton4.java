@@ -78,9 +78,10 @@ public class Auton4 extends LinearOpMode {
                 nudger.setPosition(0.05);
                 sleep(1000);
 
-                dt.Translate(-0.4,0.4,0,false);
+                dt.Translate(-0.3,0.3,0,false);
                 sleep(2000);
                 dt.Translate(0,0,0,false);
+                sleep(1000);
 
                 continuing = false;
             }

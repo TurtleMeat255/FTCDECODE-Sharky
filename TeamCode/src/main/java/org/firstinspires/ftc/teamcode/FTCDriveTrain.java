@@ -43,6 +43,20 @@ public class FTCDriveTrain
         imu.initialize(parameters);
     }
 
+    public void RobotCentric(double x, double y, double rx)
+    {
+        double denominator = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rx), 1);
+        double frontLeftPower = (y + x + rx) / denominator;
+        double backLeftPower = (y - x + rx) / denominator;
+        double frontRightPower = (y - x - rx) / denominator;
+        double backRightPower = (y + x - rx) / denominator;
+
+        frontLeftMotor.setPower(frontLeftPower * moveSpeed);
+        backLeftMotor.setPower(backLeftPower * moveSpeed);
+        frontRightMotor.setPower(frontRightPower * moveSpeed);
+        backRightMotor.setPower(backRightPower * moveSpeed);
+    }
+
     public void Translate(double x, double y, double rx, boolean reset)
     {
             // This button choice was made so that it is hard to hit on accident,

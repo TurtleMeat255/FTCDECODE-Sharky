@@ -12,7 +12,7 @@ public class Shooter {
     Servo Hood2;
     boolean LastUp = false;
     boolean LastDown = false;
-    static double position = 0;
+    double position = 0.2;
 
     double shooterSpeed = 0.7;
 
@@ -31,6 +31,7 @@ public class Shooter {
         shooter2 = hwMap.get(DcMotor.class, "Shooter2");
         Hood1 = hwMap.get(Servo.class, "Hood1");
         Hood2 = hwMap.get(Servo.class, "Hood2");
+        Hood2.setDirection(Servo.Direction.REVERSE);
         shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -95,11 +96,11 @@ public class Shooter {
         shooter2.setPower(input);
     }
     public void HoodStuff(boolean HoodUp, boolean HoodDown) {
-        if (HoodUp && !LastUp && position <= 0.6) {
-            position += 0.2;
+        if (HoodUp && !LastUp && position <= 0.8) {
+            position += 0.1;
         }
-        if (HoodDown && !LastDown && position >= 0.2) {
-            position -= 0.2;
+        if (HoodDown && !LastDown && position >= 0.1) {
+            position -= 0.1;
         }
         // Random comment
 
@@ -112,5 +113,10 @@ public class Shooter {
     public void SetShooterPower(double power)
     {
         shooterSpeed = power;
+    }
+
+    public double GetHoodPosition()
+    {
+        return position;
     }
 }
