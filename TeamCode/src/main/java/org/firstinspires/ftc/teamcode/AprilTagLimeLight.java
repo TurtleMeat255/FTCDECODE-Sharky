@@ -17,6 +17,12 @@ public class AprilTagLimeLight extends OpMode {
     private Limelight3A limeLight;
     private IMU Imu;
 
+    private final double LIMELIGHTANGLECONST_D = 21;
+
+    private final double APRILTAGH_M = 749.3;
+    private final double LIMELIGHTDISTBOTTOM_M = 245.7;
+    private final double LIMELIGHTDISTCONST_M = APRILTAGH_M - LIMELIGHTDISTBOTTOM_M;
+
     @Override
     public void init() {
         limeLight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -43,11 +49,30 @@ public class AprilTagLimeLight extends OpMode {
         List<LLResultTypes.FiducialResult> fiducial = llresult.getFiducialResults();
 
         if (llresult != null && llresult.isValid()) {
-            Pose3D botPose = llresult.getBotpose_MT2();
+//            Pose3D botPose = llresult.getBotpose_MT2();
             telemetry.addData("Tx", llresult.getTx());
             telemetry.addData("Ty", llresult.getTy());
+            telemetry.addData("Ta", llresult.getTa());
             telemetry.addData("Target Area", llresult.getTa());
             telemetry.addData("id", fiducial.get(0).getFiducialId());
+
+            double theta = llresult.getTy();
+            theta += LIMELIGHTANGLECONST_D;
+
+            theta = Math.toRadians(theta);
+
+            double txTheta = llresult.getTx();
+
+            txTheta = Math.toRadians(txTheta);
+
+            // limelight physical angle - 21 degrees
+            // lens dist to bottom - 245.7mm = const
+            // dist = const/tan theta
+
+            double distance = LIMELIGHTDISTCONST_M / Math.tan(theta);
+            distance /= Math.cos(txTheta);
+
+            telemetry.addData("distance", distance);
 
             if (fiducial.get(0).getFiducialId() == 21) {
                 //run code
@@ -56,8 +81,6 @@ public class AprilTagLimeLight extends OpMode {
             } else if (fiducial.get(0).getFiducialId() == 23) {
                 // run code
             }
-
-
         }
 
         telemetry.update();
