@@ -13,13 +13,13 @@ public class Spinindexer {
     private final ElapsedTime sinceMadeDown = new ElapsedTime();
     private int currentTicks = 0;
     private double currentAngle = 360 * currentTicks/145.6;
-    private final double kp = 0.025; // 0.025
+    private final double kp = 0.05; // 0.025
     private final double ki = 0;
-    private final double kd = 0.00075; // 0.00075
+    private final double kd = 0.001; // 0.00075
     private double lastError = 0;
     private double integralSum = 0;
     private static double nudgyPosition = 0.05;
-    private final double nudgerTime = 2000;
+    private final double nudgerTime = 2;
     private final double greenHue = 0;
     private final double purpleHue = 0;
     private final double colorRange = 0;
@@ -33,6 +33,7 @@ public class Spinindexer {
         colorSensor = hwMap.get(ColorSensor.class, "colorSensor");
         spinner.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         spinner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        spinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public int colorDetected() { // 1 = green, 2 = purple
@@ -60,18 +61,18 @@ public class Spinindexer {
             return 0;
         }
     }
-    public void nudging(boolean nudgeUp, boolean nudgeDown) {
+    public void nudging(boolean nudgeUp) {
         if (nudgeUp) {
             nudgyPosition = 0.35;
         }
-        if (nudgeDown) {
+        else{
             nudgyPosition = 0.05;
             sinceMadeDown.reset();
         }
         nudger.setPosition(nudgyPosition);
     }
     public boolean isItDown() {
-        if (sinceMadeDown.milliseconds() > nudgerTime && nudgyPosition == 0.05) {
+        if (sinceMadeDown.milliseconds() > nudgerTime && Math.abs(0.05 - nudger.getPosition()) < 0.01) {
             return true;
         } else {
             return false;
@@ -95,6 +96,13 @@ public class Spinindexer {
         currentAngle = 360 * currentTicks/encoderResolution;
         double error = currentAngle - targetAngle;
         double derivative;
+
+        if (withinRange(targetAngle))
+        {
+            spinner.setPower(0);
+            return;
+        }
+
         if (PIDTimer.seconds() > 0) {
             derivative = (error - lastError)/PIDTimer.seconds();
         } else {
@@ -115,5 +123,15 @@ public class Spinindexer {
     }
     public void runNudger(double input) {
         nudger.setPosition(input);
+    }
+
+    public double GetCurrentPosition()
+    {
+        return spinner.getCurrentPosition();
+    }
+
+    public double GetEncoderResolution()
+    {
+        return encoderResolution;
     }
 }

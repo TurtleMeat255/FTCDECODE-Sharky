@@ -128,21 +128,11 @@ public class DriverOperator extends LinearOpMode{
                 }
             }
 
-
-
             lastIntakeRight = intakeRight;
             lastShooterLeft = shooterLeft;
             lastIntakeLeft = intakeLeft;
             lastShooterRight = shooterRight;
             spinindexer.PID(inputAngle);
-
-            if (!spinindexer.withinRange(inputAngle)) {
-                pushUp = false;
-            }
-            if (intakeAligned) {
-                pushUp = false;
-            }
-            spinindexer.nudging(pushUp, pushDown);
         }
     }
 }

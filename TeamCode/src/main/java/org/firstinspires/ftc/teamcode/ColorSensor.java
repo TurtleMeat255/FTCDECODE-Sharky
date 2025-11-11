@@ -7,6 +7,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
@@ -20,9 +21,14 @@ import java.util.List;
 // https://www.youtube.com/watch?v=pyIeknIcT8M
 // coach prat color sensor
 
-@TeleOp
-public class ColorSensor extends OpMode {
+public class ColorSensor{
     private NormalizedColorSensor colorSensor;
+
+    HSVColor purpleMin = new HSVColor(190, 0.45, 0.18);
+    HSVColor purpleMax = new HSVColor(240, 1, 1);
+
+    HSVColor greenMin = new HSVColor(150, 0.45, 0.18);
+    HSVColor greenMax = new HSVColor(175, 1, 1);
 
     public enum DetectedColor
     {
@@ -31,32 +37,27 @@ public class ColorSensor extends OpMode {
         UNKNOWN
     }
 
-    /*
-    green
-    RED =
-    GREEN =
-    BLUE =
-
-    purple
-    RED =
-    GREEN =
-    BLUE =
-     */
-
-    @Override
-    public void init()
+    public static class HSVColor
     {
-        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "colorSensor");
+        public double hue;
+        double saturation;
+        double value;
+        public HSVColor(double hue, double saturation, double value)
+        {
+            this.hue = hue;
+            this.saturation = saturation;
+            this.value = value;
+        }
+
+    }
+
+    public void init(HardwareMap hwMap)
+    {
+        colorSensor = hwMap.get(NormalizedColorSensor.class, "colorSensor");
         colorSensor.setGain(20);
     }
 
-    @Override
-    public void loop() {
-        DetectedColor detection = GetDetectedColor();
-        telemetry.update();
-    }
-
-    private DetectedColor GetDetectedColor()
+    public DetectedColor GetDetectedColor()
     {
         NormalizedRGBA colors = colorSensor.getNormalizedColors();
 
@@ -65,13 +66,25 @@ public class ColorSensor extends OpMode {
         normGreen = colors.green/colors.alpha;
         normBlue = colors.blue/colors.alpha;
 
-        telemetry.addData("norm red", normRed);
-        telemetry.addData("norm green", normGreen);
-        telemetry.addData("norm blue", normBlue);
+        float[] hsvValues = {0F, 0F, 0F};
+        android.graphics.Color.RGBToHSV(
+                (int) (normRed * 255),
+                (int) (normGreen * 255),
+                (int) (normBlue * 255),
+                hsvValues
+        );
 
-        telemetry.addData("red", colors.red);
-        telemetry.addData("green", colors.green);
-        telemetry.addData("blue", colors.blue);
+        if (hsvValues[0] > purpleMin.hue && hsvValues[0] < purpleMax.hue &&
+            hsvValues[1] > purpleMin.saturation && hsvValues[2] > purpleMin.value)
+        {
+            return DetectedColor.PURPLE;
+        }
+
+        if (hsvValues[0] > greenMin.hue && hsvValues[0] < greenMax.hue &&
+                hsvValues[1] > greenMin.saturation && hsvValues[2] > greenMin.value)
+        {
+            return DetectedColor.GREEN;
+        }
 
         return DetectedColor.UNKNOWN;
     }

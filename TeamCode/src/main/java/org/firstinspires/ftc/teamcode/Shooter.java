@@ -106,8 +106,8 @@ public class Shooter {
 
         LastDown = HoodDown;
         LastUp = HoodUp;
-        Hood1.setPosition(position);
-        Hood2.setPosition(position);
+//        Hood1.setPosition(position);
+//        Hood2.setPosition(position);
     }
 
     public void SetShooterPower(double power)

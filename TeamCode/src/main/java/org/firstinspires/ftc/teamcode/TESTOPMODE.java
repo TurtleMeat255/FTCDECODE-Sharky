@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -11,32 +12,34 @@ public class TESTOPMODE extends LinearOpMode{
     Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
     IntakeCode intake = new IntakeCode();
+    ColorSensor colorSensor = new ColorSensor();
 
     Servo nudger = null;
-    DcMotor spindexer = null;
 
     DcMotor intake1 = null;
 
     ElapsedTime dt = new ElapsedTime();
 
     public double inputAngle = 0;
-    public boolean intakeAligned = true;
+    public boolean intakeAligned = false;
     boolean lastShooterLeft = false;
     boolean lastShooterRight = false;
     boolean lastIntakeLeft = false;
     boolean lastIntakeRight = false;
     boolean coloringRn = false;
-    int colorIWant = 0; // 0 = no color, 1 = green, 2 = purple
+    ColorSensor.DetectedColor colorIWant = ColorSensor.DetectedColor.UNKNOWN; // 0 = no color, 1 = green, 2 = purple
     int ticker = 0;
  // And these for the nudger
     boolean pushUp; // This will be set by your logic
     boolean pushDown;
 
-    private double encoderResolution = 145.6f;
     boolean canMove = true;
     boolean canSwapMode = true;
     boolean swapping = false;
     double servoPos = 0;
+
+    ElapsedTime pushUpTimer = new ElapsedTime();
+    double pushUpMaxTime = 0.6;
 
     @Override
     public void runOpMode() {
@@ -44,18 +47,13 @@ public class TESTOPMODE extends LinearOpMode{
 //        intake.init(hardwareMap);
         spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
+        colorSensor.init(hardwareMap);
         nudger = hardwareMap.get(Servo.class, "nudger");
         nudger.setDirection(Servo.Direction.REVERSE);
 
-        spindexer = hardwareMap.get(DcMotor.class, "spinner");
-
-        spindexer.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        spindexer.setTargetPosition(0);
-        spindexer.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
         intake1 = hardwareMap.get(DcMotor.class, "intake");
 
-        shooter.SetShooterPower(0.7);
+        shooter.SetShooterPower(0.2);
 
         // I wanna know if initialization is complete.
         telemetry.addData("Status", "Robot is Initialized");
@@ -70,32 +68,25 @@ public class TESTOPMODE extends LinearOpMode{
 
             boolean resetButton = gamepad1.a;
 
-            boolean shooterLeft = gamepad2.dpad_left;
-            boolean shooterRight = gamepad2.dpad_right;
-            boolean intakeLeft = gamepad2.dpad_down;
-            boolean intakeRight = gamepad2.dpad_up;
+            boolean spindexSixth = gamepad2.dpad_left;
+            boolean spindexThird = gamepad2.dpad_up;
 
             double spindexerManual = gamepad2.right_stick_x;
 
             // You will also need these for the color selection logic
             boolean shootAPurple = gamepad2.x;
             boolean shootAGreen = gamepad2.b;
+            boolean activateNudger = gamepad2.y;
 
             boolean hoodUp = gamepad2.right_bumper;
             boolean hoodDown = gamepad2.left_bumper;
 
-            // Intake stuff ahhh code.
-//            if (gamepad2.x) {
-//                intake.ActivateIntake(true, false);
-//            }
-//            else {
-//                intake.ActivateIntake(false, false);
-//            }
+            double intakePressed = gamepad2.right_trigger;
+            double shooterPressed = gamepad2.left_trigger;
 
-//            drivetrain.Translate(xPos,yPos,rot,resetButton);
             drivetrain.RobotCentric(xPos,yPos,rot);
 
-            if (gamepad2.x)
+            if (intakePressed > 0.3)
             {
                 intake1.setPower(-0.6);
             }
@@ -109,8 +100,7 @@ public class TESTOPMODE extends LinearOpMode{
                 intake1.setPower(0.6);
             }
 
-            // Shoot stuff ahhh code.
-            if (gamepad2.a) {
+            if (shooterPressed > 0.3) {
                 shooter.ActivateShooter(true, false);
             }
             else
@@ -118,147 +108,51 @@ public class TESTOPMODE extends LinearOpMode{
                 shooter.ActivateShooter(false, false);
             }
 
-//            else if (gamepad2.left_bumper) {
-//                shooter.ActivateShooter(false, true);
-//            }
-//            else {
-//                shooter.ActivateShooter(false, false);
-//            }
-            if (gamepad2.y)
-            {
-                nudger.setPosition(0.35);
-            }
-            else
-            {
-                nudger.setPosition(0.05);
-            }
-
-            if (shooterLeft && !lastShooterLeft)
-            {
-                inputAngle += 60;
-            }
-            if (shooterRight && !lastShooterRight)
-            {
-                inputAngle -= 60;
-            }
-            if (intakeLeft && !lastIntakeLeft)
-            {
-                inputAngle += 120;
-            }
-            if (intakeRight && !lastIntakeRight)
-            {
-                inputAngle -= 120;
-            }
-
             if (Math.abs(spindexerManual) > 0.3)
             {
-                inputAngle += spindexerManual * 60 * dt.seconds();
+                inputAngle += spindexerManual/Math.abs(spindexerManual) * 120 * dt.seconds();
             }
 
             shooter.HoodStuff(hoodUp,hoodDown);
 
-            dt.reset();
-            /*
-            if (shooterLeft && !lastShooterLeft) {
-                if (intakeAligned) {
-                    inputAngle += 60;
-                    intakeAligned = !intakeAligned;
-                } else {
-                    inputAngle += 120;
-                }
-            }
-            if (shooterRight && !lastShooterRight) {
-                if (intakeAligned) {
-                    inputAngle -= 60;
-                    intakeAligned = !intakeAligned;
-                } else {
-                    inputAngle -= 120;
-                }
-            }
-
-            if (intakeLeft && !lastIntakeLeft) {
-                if (intakeAligned) {
-                    inputAngle += 120;
-                } else {
-                    inputAngle += 60;
-                    intakeAligned = !intakeAligned;
-                }
-            }
-            if (intakeRight && !lastIntakeRight) {
-                if (intakeAligned) {
-                    inputAngle -= 120;
-                } else {
-                    inputAngle -= 60;
-                    intakeAligned = !intakeAligned;
-                }
-            }
-             */
-            //shooter.HoodStuff(gamepad2.left_bumper, false);
-            lastIntakeRight = intakeRight;
-            lastShooterLeft = shooterLeft;
-            lastIntakeLeft = intakeLeft;
-            lastShooterRight = shooterRight;
-            spinindexer.PID(inputAngle);
-
-            telemetry.addData("nudger position", nudger.getPosition());
-            telemetry.addData("spindexer pos", spindexer.getCurrentPosition());
-            telemetry.addData("input angle:", inputAngle);
-            telemetry.addData("hood position", shooter.GetHoodPosition());
-            telemetry.update();
-
-/*
-            if (gamepad2.b)
-            {
-                spindexer.setPower(0.2);
-            }
-            else
-            {
-                spindexer.setPower(0);
-            } */
-            /*
-            if (gamepad2.x && canMove && canSwapMode) {
-                spindexer.setTargetPosition(spindexer.getCurrentPosition() + (int)encoderResolution / 3);
+            if (spindexThird && canMove && canSwapMode) {
+                inputAngle += 120;
                 canMove = false;
             }
-            else if (!gamepad2.x)
+            else if (!spindexThird)
             {
                 canMove = true;
             }
 
-            if (gamepad2.b && canSwapMode) {
-                spindexer.setTargetPosition(spindexer.getCurrentPosition() + (int)encoderResolution / 6);
+            if (spindexSixth && canSwapMode) {
+                inputAngle += 60;
+                intakeAligned = !intakeAligned;
                 canSwapMode = false;
             }
-            else if (!gamepad2.b)
+            else if (!spindexSixth)
             {
                 canSwapMode = true;
             }
 
             if (!coloringRn && spinindexer.isItDown()) {
                 if (shootAPurple && !intakeAligned && spinindexer.withinRange(inputAngle)) {
-                    colorIWant = 2;
+                    colorIWant = ColorSensor.DetectedColor.PURPLE;
                     coloringRn = true;
                     ticker = 0;
                 }
                 if (shootAGreen && !intakeAligned && spinindexer.withinRange(inputAngle)) {
-                    colorIWant = 1;
+                    colorIWant = ColorSensor.DetectedColor.GREEN;
                     coloringRn = true;
                     ticker = 0;
                 }
-            } */
+            }
 
-
-           /* spinindexer.nudging(gamepad2.y, gamepad2.b); */
-
-
-
-
-            /*
             if (coloringRn) {
                 if (spinindexer.withinRange(inputAngle)) {
-                    if (spinindexer.colorDetected() == colorIWant) {
-                            pushUp = true;
-                            coloringRn = false;
+                    if (colorSensor.GetDetectedColor() == colorIWant) {
+                        pushUp = true;
+                        coloringRn = false;
+                        pushUpTimer.reset();
                     } else {
                         pushUp = false;
                         ticker += 1;
@@ -269,19 +163,24 @@ public class TESTOPMODE extends LinearOpMode{
                         }
                     }
                 }
-            } */
+            }
 
+            spinindexer.PID(inputAngle);
+            spinindexer.nudging(pushUp);
 
-/*
-            if (!spinindexer.withinRange(inputAngle)) {
+            dt.reset();
+
+            if (pushUpTimer.seconds() > pushUpMaxTime)
+            {
                 pushUp = false;
             }
-            if (intakeAligned) {
-                pushUp = false;
-            }
-            spinindexer.nudging(pushUp, pushDown); */
 
-
+            telemetry.addData("nudger position", nudger.getPosition());
+            telemetry.addData("spindexer pos", spinindexer.GetCurrentPosition());
+            telemetry.addData("input angle:", inputAngle);
+            telemetry.addData("hood position", shooter.GetHoodPosition());
+            telemetry.addData("color sensor detection", colorSensor.GetDetectedColor());
+            telemetry.update();
         }
     }
 }
