@@ -1,13 +1,17 @@
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 public class Shooter {
-    DcMotor shooter1;
-    DcMotor shooter2;
+    DcMotorEx shooter1;
+    DcMotorEx shooter2;
     Servo Hood1;
     Servo Hood2;
     boolean LastUp = false;
@@ -19,24 +23,26 @@ public class Shooter {
     double lastEncoder = 0;
     double lastRPMERR = 0;
 
-    double kp = 0.1;
+    double kp = 1;
     double kd = 0;
 
+    final double COUNTS_PER_MOTOR_REV = 28.0;
+    final double GEAR_REDUCTION = 1;
+    final double COUNTS_PER_WHEEL_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION;
 
     ElapsedTime dt = new ElapsedTime();
     double encoderResolution = 28;
 
     public void init(HardwareMap hwMap) {
-        shooter1 = hwMap.get(DcMotor.class, "Shooter1"); //
-        shooter2 = hwMap.get(DcMotor.class, "Shooter2");
+        shooter1 = hwMap.get(DcMotorEx.class, "Shooter1"); //
+        shooter2 = hwMap.get(DcMotorEx.class, "Shooter2");
         Hood1 = hwMap.get(Servo.class, "Hood1");
         Hood2 = hwMap.get(Servo.class, "Hood2");
         Hood2.setDirection(Servo.Direction.REVERSE);
-        shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
         shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
-    //    Hood1.setDirection(Servo.Direction.REVERSE);
+
+        shooter1.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(kp,0,kd,0));
+        shooter2.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(kp,0,kd,0));
     }
     public void ActivateShooter(boolean Shoot, boolean backShoot) {
         if (Shoot)
@@ -55,7 +61,6 @@ public class Shooter {
             shooter2.setPower(0);
         }
     }
-
 
     public void FireAtRPM(int rpm)
     {
@@ -90,11 +95,19 @@ public class Shooter {
         dt.reset();
     }
 
+    public void SetShooterRPM(double targetRPM)
+    {
+        double tps = (targetRPM/60) * COUNTS_PER_WHEEL_REV;
+        shooter1.setVelocity(tps);
+        shooter2.setVelocity(tps);
+    }
+
     private void SetPowerPID(double input)
     {
         shooter1.setPower(input);
         shooter2.setPower(input);
     }
+
     public void HoodStuff(boolean HoodUp, boolean HoodDown) {
         if (HoodUp && !LastUp && position <= 0.8) {
             position += 0.1;
@@ -106,8 +119,8 @@ public class Shooter {
 
         LastDown = HoodDown;
         LastUp = HoodUp;
-//        Hood1.setPosition(position);
-//        Hood2.setPosition(position);
+        Hood1.setPosition(position);
+        Hood2.setPosition(position);
     }
 
     public void SetShooterPower(double power)
@@ -118,5 +131,10 @@ public class Shooter {
     public double GetHoodPosition()
     {
         return position;
+    }
+
+    public double GetShooterRPM()
+    {
+        return shooter1.getVelocity();
     }
 }

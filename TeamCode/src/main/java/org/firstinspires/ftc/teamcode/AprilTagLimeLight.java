@@ -69,6 +69,8 @@ public class AprilTagLimeLight extends OpMode {
             // lens dist to bottom - 245.7mm = const
             // dist = const/tan theta
 
+            // initial shoot angle - 38.8 degrees
+
             double distance = LIMELIGHTDISTCONST_M / Math.tan(theta);
             distance /= Math.cos(txTheta);
 

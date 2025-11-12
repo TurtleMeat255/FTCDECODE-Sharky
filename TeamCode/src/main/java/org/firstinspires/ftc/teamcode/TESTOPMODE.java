@@ -38,6 +38,12 @@ public class TESTOPMODE extends LinearOpMode{
     boolean swapping = false;
     double servoPos = 0;
 
+    int rpmShiftAmount = 100;
+    int firingRPM = 1000;
+
+    boolean canShiftSpeedUp = true;
+    boolean canShiftSpeedDown = true;
+
     ElapsedTime pushUpTimer = new ElapsedTime();
     double pushUpMaxTime = 0.6;
 
@@ -53,7 +59,7 @@ public class TESTOPMODE extends LinearOpMode{
 
         intake1 = hardwareMap.get(DcMotor.class, "intake");
 
-        shooter.SetShooterPower(0.2);
+        shooter.SetShooterPower(1);
 
         // I wanna know if initialization is complete.
         telemetry.addData("Status", "Robot is Initialized");
@@ -84,6 +90,9 @@ public class TESTOPMODE extends LinearOpMode{
             double intakePressed = gamepad2.right_trigger;
             double shooterPressed = gamepad2.left_trigger;
 
+            boolean shiftRpmDown = gamepad1.left_bumper;
+            boolean shiftRpmUp = gamepad1.right_bumper;
+
             drivetrain.RobotCentric(xPos,yPos,rot);
 
             if (intakePressed > 0.3)
@@ -101,11 +110,37 @@ public class TESTOPMODE extends LinearOpMode{
             }
 
             if (shooterPressed > 0.3) {
-                shooter.ActivateShooter(true, false);
+                shooter.SetShooterRPM(firingRPM);
             }
             else
             {
-                shooter.ActivateShooter(false, false);
+                shooter.SetShooterRPM(0);
+            }
+
+            if (shiftRpmUp && canShiftSpeedUp)
+            {
+                if (firingRPM + 100 < 8400)
+                {
+                    canShiftSpeedUp = false;
+                    firingRPM += 100;
+                }
+            }
+            else if (!shiftRpmUp)
+            {
+                canShiftSpeedUp = true;
+            }
+
+            if (shiftRpmDown && canShiftSpeedDown)
+            {
+                if (firingRPM - 100 > 1000)
+                {
+                    canShiftSpeedDown = false;
+                    firingRPM -= 100;
+                }
+            }
+            else if (!shiftRpmDown)
+            {
+                canShiftSpeedDown = true;
             }
 
             if (Math.abs(spindexerManual) > 0.3)
@@ -180,6 +215,8 @@ public class TESTOPMODE extends LinearOpMode{
             telemetry.addData("input angle:", inputAngle);
             telemetry.addData("hood position", shooter.GetHoodPosition());
             telemetry.addData("color sensor detection", colorSensor.GetDetectedColor());
+            telemetry.addData("current shooter tgt rpm", firingRPM);
+            telemetry.addData("current shooter actual rpm", shooter.GetShooterRPM());
             telemetry.update();
         }
     }
