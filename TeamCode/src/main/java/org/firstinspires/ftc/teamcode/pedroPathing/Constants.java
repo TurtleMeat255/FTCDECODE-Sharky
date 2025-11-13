@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.pedropathing.control.FilteredPIDFCoefficients;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
@@ -11,29 +13,32 @@ import com.pedropathing.ftc.localization.Encoder;
 import com.pedropathing.ftc.localization.constants.DriveEncoderConstants;
 
 
-
+// bot weight - 27.6 lb
 public class Constants {
     public static DriveEncoderConstants localizerConstants = new DriveEncoderConstants()
             .rightFrontMotorName("frontRightMotor")
             .rightRearMotorName("backRightMotor")
             .leftRearMotorName("backLeftMotor")
             .leftFrontMotorName("frontLeftMotor")
-            .leftFrontEncoderDirection(Encoder.FORWARD)
-            .leftRearEncoderDirection(Encoder.FORWARD)
+            .leftFrontEncoderDirection(Encoder.REVERSE)
+            .leftRearEncoderDirection(Encoder.REVERSE)
             .rightFrontEncoderDirection(Encoder.FORWARD)
             .rightRearEncoderDirection(Encoder.FORWARD)
-            .robotWidth(11.2)
-            .robotLength(17.2)
 
-
-            .forwardTicksToInches(6.777)
-            .strafeTicksToInches(0.981)
-            .turnTicksToInches(-0.944);
+            .forwardTicksToInches(0.00617384)
+            .strafeTicksToInches(0.00640987)
+            .turnTicksToInches(0.00094804755);
 
 
 
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(12.8); // tune this later
+            .mass(12.51915)
+            .forwardZeroPowerAcceleration(-45.36299)
+            .lateralZeroPowerAcceleration(-100.938)
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.2, 0, 0.02, 0))
+            .headingPIDFCoefficients(new PIDFCoefficients(2, 0, 0.02, 0))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.02,0.0,0.000001,0.2,0.0))
+            .centripetalScaling(2);
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
@@ -44,9 +49,11 @@ public class Constants {
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
+            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .xVelocity(66.8)
+            .yVelocity(62.007);
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 0.5, 0.5);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
