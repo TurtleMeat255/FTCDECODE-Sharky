@@ -135,6 +135,11 @@ public class Shooter {
 
     public double GetShooterRPM()
     {
-        return shooter1.getVelocity();
+        return shooter1.getVelocity() * 60 / COUNTS_PER_WHEEL_REV;
+    }
+
+    public boolean RPMCorrect(double target)
+    {
+        return (Math.abs(GetShooterRPM() - target) < 100);
     }
 }
