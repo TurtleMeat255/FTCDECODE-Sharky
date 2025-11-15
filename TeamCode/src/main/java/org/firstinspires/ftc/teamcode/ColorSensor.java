@@ -24,11 +24,11 @@ import java.util.List;
 public class ColorSensor{
     private NormalizedColorSensor colorSensor;
 
-    HSVColor purpleMin = new HSVColor(190, 0.45, 0.18);
-    HSVColor purpleMax = new HSVColor(240, 1, 1);
+    HSVColor purpleMin = new HSVColor(190, 0.25, 0.25); // 272
+    HSVColor purpleMax = new HSVColor(240, 1, 1); //360
 
-    HSVColor greenMin = new HSVColor(150, 0.45, 0.18);
-    HSVColor greenMax = new HSVColor(175, 1, 1);
+    HSVColor greenMin = new HSVColor(150, 0.25, 0.25); // 44
+    HSVColor greenMax = new HSVColor(210, 1, 1); //164
 
     public enum DetectedColor
     {
@@ -48,7 +48,6 @@ public class ColorSensor{
             this.saturation = saturation;
             this.value = value;
         }
-
     }
 
     public void init(HardwareMap hwMap)
@@ -73,6 +72,8 @@ public class ColorSensor{
                 (int) (normBlue * 255),
                 hsvValues
         );
+
+//        hsvValues[0] *= 360;
 
         if (hsvValues[0] > purpleMin.hue && hsvValues[0] < purpleMax.hue &&
             hsvValues[1] > purpleMin.saturation && hsvValues[2] > purpleMin.value)

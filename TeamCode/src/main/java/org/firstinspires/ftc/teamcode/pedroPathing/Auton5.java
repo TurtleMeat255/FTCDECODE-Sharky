@@ -41,8 +41,6 @@ public class Auton5 extends OpMode {
     23 = ppg
      */
 
-
-
     ElapsedTime pushUpTimer = new ElapsedTime();
     double pushUpMaxTime = 1;
 
@@ -96,17 +94,17 @@ public class Auton5 extends OpMode {
     {
         coloringRn = true;
         ticker = 0;
-        shooter.FireAtRPM(1000);
+        shooter.FireAtRPM(2000);
 
-        ShootBall(ColorSensor.DetectedColor.GREEN,1000);
+        ShootBall(ColorSensor.DetectedColor.GREEN,2000);
     }
 
     public void ShootPurple()
     {
         coloringRn = true;
         ticker = 0;
-        shooter.FireAtRPM(1000);
-        ShootBall(ColorSensor.DetectedColor.PURPLE,1000);
+        shooter.FireAtRPM(2000);
+        ShootBall(ColorSensor.DetectedColor.PURPLE,2000);
     }
 
     public void ShootBall(ColorSensor.DetectedColor color, double rpm)

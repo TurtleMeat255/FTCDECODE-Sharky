@@ -13,6 +13,7 @@ public class TESTOPMODE extends LinearOpMode{
     Shooter shooter = new Shooter();
     IntakeCode intake = new IntakeCode();
     ColorSensor colorSensor = new ColorSensor();
+    AprilTagLimeLight limelight = new AprilTagLimeLight();
 
     Servo nudger = null;
 
@@ -46,6 +47,13 @@ public class TESTOPMODE extends LinearOpMode{
 
     ElapsedTime pushUpTimer = new ElapsedTime();
     double pushUpMaxTime = 0.6;
+    boolean readyToShoot = false;
+
+    boolean autoShoot = true;
+
+    int rpmIncrement = 200;
+
+    boolean autoTargeting = false;
 
     @Override
     public void runOpMode() {
@@ -54,6 +62,7 @@ public class TESTOPMODE extends LinearOpMode{
         spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
         colorSensor.init(hardwareMap);
+        limelight.init(hardwareMap);
         nudger = hardwareMap.get(Servo.class, "nudger");
         nudger.setDirection(Servo.Direction.REVERSE);
 
@@ -77,12 +86,14 @@ public class TESTOPMODE extends LinearOpMode{
             boolean spindexSixth = gamepad2.dpad_left;
             boolean spindexThird = gamepad2.dpad_up;
 
+            boolean activateAutoShoot = gamepad2.dpad_right;
+            boolean activateManualShoot = gamepad2.dpad_down;
+
             double spindexerManual = gamepad2.right_stick_x;
 
             // You will also need these for the color selection logic
             boolean shootAPurple = gamepad2.x;
             boolean shootAGreen = gamepad2.b;
-            boolean activateNudger = gamepad2.y;
 
             boolean hoodUp = gamepad2.right_bumper;
             boolean hoodDown = gamepad2.left_bumper;
@@ -93,7 +104,28 @@ public class TESTOPMODE extends LinearOpMode{
             boolean shiftRpmDown = gamepad1.left_bumper;
             boolean shiftRpmUp = gamepad1.right_bumper;
 
-            drivetrain.RobotCentric(xPos,yPos,rot);
+            boolean activateAutoTarget = gamepad1.dpad_right;
+            boolean deactivateAutoTarget = gamepad1.dpad_down;
+
+            double distance = limelight.GetDistance();
+
+            boolean raiseNudger = gamepad2.y;
+
+            if (autoTargeting)
+            {
+                drivetrain.RobotCentricAlign(xPos,yPos, limelight.GetTX());
+            }
+            else
+            {
+                drivetrain.RobotCentric(xPos,yPos,rot);
+            }
+
+
+            if (raiseNudger)
+            {
+                pushUp = true;
+                pushUpTimer.reset();
+            }
 
             if (intakePressed > 0.3)
             {
@@ -109,6 +141,73 @@ public class TESTOPMODE extends LinearOpMode{
                 intake1.setPower(0.6);
             }
 
+            if (activateAutoShoot)
+            {
+                autoShoot = true;
+            }
+            else if (activateManualShoot)
+            {
+                autoShoot = false;
+            }
+
+            if (activateAutoTarget)
+            {
+                autoTargeting = true;
+            }
+            else if (deactivateAutoTarget)
+            {
+                autoTargeting = false;
+            }
+
+            if (autoShoot)
+            {
+                if (distance > 66)
+                {
+                    firingRPM = 3300;
+                    shooter.SetHoodPosition(0.8);
+                }
+                else if (distance > 45)
+                {
+                    firingRPM = 3000;
+                    shooter.SetHoodPosition(0.45);
+                }
+                else
+                {
+                    firingRPM = 2700;
+                    shooter.SetHoodPosition(0.8);
+                }
+            }
+            else
+            {
+                if (shiftRpmUp && canShiftSpeedUp)
+                {
+                    if (firingRPM + rpmIncrement < 8400)
+                    {
+                        canShiftSpeedUp = false;
+                        firingRPM += rpmIncrement;
+                    }
+                }
+                else if (!shiftRpmUp)
+                {
+                    canShiftSpeedUp = true;
+                }
+
+                if (shiftRpmDown && canShiftSpeedDown)
+                {
+                    if (firingRPM - rpmIncrement > 1000)
+                    {
+                        canShiftSpeedDown = false;
+                        firingRPM -= rpmIncrement;
+                    }
+                }
+                else if (!shiftRpmDown)
+                {
+                    canShiftSpeedDown = true;
+                }
+
+                shooter.HoodStuff(hoodUp, hoodDown);
+            }
+
             if (shooterPressed > 0.3) {
                 shooter.SetShooterRPM(firingRPM);
             }
@@ -117,38 +216,10 @@ public class TESTOPMODE extends LinearOpMode{
                 shooter.SetShooterRPM(0);
             }
 
-            if (shiftRpmUp && canShiftSpeedUp)
-            {
-                if (firingRPM + 100 < 8400)
-                {
-                    canShiftSpeedUp = false;
-                    firingRPM += 100;
-                }
-            }
-            else if (!shiftRpmUp)
-            {
-                canShiftSpeedUp = true;
-            }
-
-            if (shiftRpmDown && canShiftSpeedDown)
-            {
-                if (firingRPM - 100 > 1000)
-                {
-                    canShiftSpeedDown = false;
-                    firingRPM -= 100;
-                }
-            }
-            else if (!shiftRpmDown)
-            {
-                canShiftSpeedDown = true;
-            }
-
             if (Math.abs(spindexerManual) > 0.3)
             {
                 inputAngle += spindexerManual/Math.abs(spindexerManual) * 120 * dt.seconds();
             }
-
-            shooter.HoodStuff(hoodUp,hoodDown);
 
             if (spindexThird && canMove && canSwapMode) {
                 inputAngle += 120;
@@ -185,7 +256,7 @@ public class TESTOPMODE extends LinearOpMode{
             if (coloringRn) {
                 if (spinindexer.withinRange(inputAngle)) {
                     if (colorSensor.GetDetectedColor() == colorIWant) {
-                        pushUp = true;
+                        readyToShoot = true;
                         coloringRn = false;
                         pushUpTimer.reset();
                     } else {
@@ -200,15 +271,33 @@ public class TESTOPMODE extends LinearOpMode{
                 }
             }
 
-            spinindexer.PID(inputAngle);
-            spinindexer.nudging(pushUp);
+            if (!pushUp)
+            {
+                spinindexer.PID(inputAngle);
+            }
 
             dt.reset();
 
-            if (pushUpTimer.seconds() > pushUpMaxTime)
+            if (shooter.RPMCorrect(firingRPM))
+            {
+                if (readyToShoot)
+                {
+                    pushUp = true;
+                    pushUpTimer.reset();
+                }
+            }
+
+            if (pushUpTimer.seconds() > pushUpMaxTime/2)
             {
                 pushUp = false;
             }
+
+            if (pushUpTimer.seconds() > pushUpMaxTime)
+            {
+                readyToShoot = false;
+            }
+
+            spinindexer.nudging(pushUp);
 
             telemetry.addData("nudger position", nudger.getPosition());
             telemetry.addData("spindexer pos", spinindexer.GetCurrentPosition());
@@ -217,6 +306,8 @@ public class TESTOPMODE extends LinearOpMode{
             telemetry.addData("color sensor detection", colorSensor.GetDetectedColor());
             telemetry.addData("current shooter tgt rpm", firingRPM);
             telemetry.addData("current shooter actual rpm", shooter.GetShooterRPM());
+            telemetry.addData("shooter at rpm", shooter.RPMCorrect(firingRPM));
+            telemetry.addData("distance", limelight.GetDistance());
             telemetry.update();
         }
     }

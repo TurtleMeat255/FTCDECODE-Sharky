@@ -10,6 +10,33 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class Shooter {
+
+    /* working specifications
+     far shot
+     66 inches from score
+     lob
+     3300 rpm
+     40 degrees hood
+     hard
+     3100 rpm
+     20 degrees hood
+
+     medium shot
+     45 inches from score
+     3000 rpm
+     30 degrees
+
+     close shot
+     30 inches from score
+     2700 rpm
+     40 degree
+
+    far zone
+    3700 rpm
+    30 degree
+
+     */
+
     DcMotorEx shooter1;
     DcMotorEx shooter2;
     Servo Hood1;
@@ -39,7 +66,7 @@ public class Shooter {
         Hood1 = hwMap.get(Servo.class, "Hood1");
         Hood2 = hwMap.get(Servo.class, "Hood2");
         Hood2.setDirection(Servo.Direction.REVERSE);
-        shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter2.setDirection(DcMotor.Direction.REVERSE);
 
         shooter1.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(kp,0,kd,0));
         shooter2.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(kp,0,kd,0));
@@ -119,6 +146,13 @@ public class Shooter {
 
         LastDown = HoodDown;
         LastUp = HoodUp;
+        Hood1.setPosition(position);
+        Hood2.setPosition(position);
+    }
+
+    public void SetHoodPosition(double value)
+    {
+        position = value;
         Hood1.setPosition(position);
         Hood2.setPosition(position);
     }

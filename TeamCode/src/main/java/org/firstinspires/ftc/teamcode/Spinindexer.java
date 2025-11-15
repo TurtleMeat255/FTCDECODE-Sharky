@@ -13,9 +13,9 @@ public class Spinindexer {
     private final ElapsedTime sinceMadeDown = new ElapsedTime();
     private int currentTicks = 0;
     private double currentAngle = 360 * currentTicks/145.6;
-    private final double kp = 0.05; // 0.025
+    private final double kp = 0.015; // 0.025
     private final double ki = 0;
-    private final double kd = 0.001; // 0.00075
+    private final double kd = 0; // 0.00075
     private double lastError = 0;
     private double integralSum = 0;
     private static double nudgyPosition = 0.05;
@@ -33,7 +33,7 @@ public class Spinindexer {
         colorSensor = hwMap.get(ColorSensor.class, "colorSensor");
         spinner.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         spinner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        spinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        spinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public int colorDetected() { // 1 = green, 2 = purple
@@ -79,7 +79,7 @@ public class Spinindexer {
         }
     }
     public boolean withinRange (double targetThing) {
-        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) <= 5) {
+        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) <= 15) {
             return true;
         } else {
             return false;
@@ -97,11 +97,11 @@ public class Spinindexer {
         double error = currentAngle - targetAngle;
         double derivative;
 
-        if (withinRange(targetAngle))
-        {
-            spinner.setPower(0);
-            return;
-        }
+//        if (withinRange(targetAngle))
+//        {
+//            spinner.setPower(0);
+//            return;
+//        }
 
         if (PIDTimer.seconds() > 0) {
             derivative = (error - lastError)/PIDTimer.seconds();

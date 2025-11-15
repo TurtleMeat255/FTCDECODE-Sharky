@@ -7,6 +7,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class FTCDriveTrain
@@ -17,6 +20,13 @@ public class FTCDriveTrain
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
     IMU imu;
+
+    double kp = 0.1;
+    double kd = 0;
+    ElapsedTime dt = new ElapsedTime();
+    double lastError = 0;
+    double errorCrunchConstant = 3;
+
     public void init(HardwareMap hwMap) {
         // Declare our motors
         // Make sure your ID's match your configuration
@@ -55,6 +65,37 @@ public class FTCDriveTrain
         backLeftMotor.setPower(backLeftPower * moveSpeed);
         frontRightMotor.setPower(frontRightPower * moveSpeed);
         backRightMotor.setPower(backRightPower * moveSpeed);
+    }
+
+    public void RobotCentricAlign(double x, double y, double tx)
+    {
+        double rx = PID(tx);
+
+        double denominator = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rx), 1);
+        double frontLeftPower = (y + x + rx) / denominator;
+        double backLeftPower = (y - x + rx) / denominator;
+        double frontRightPower = (y - x - rx) / denominator;
+        double backRightPower = (y + x - rx) / denominator;
+
+        frontLeftMotor.setPower(frontLeftPower * moveSpeed);
+        backLeftMotor.setPower(backLeftPower * moveSpeed);
+        frontRightMotor.setPower(frontRightPower * moveSpeed);
+        backRightMotor.setPower(backRightPower * moveSpeed);
+    }
+
+    private double PID(double tx)
+    {
+        double error = (tx-0)/errorCrunchConstant;
+
+        double derivative = (error - lastError)/dt.seconds();
+
+        double output = error * kp + derivative * kd;
+        output = Range.clip(output, -1, 1);
+
+        lastError = error;
+        dt.reset();
+
+        return output;
     }
 
     public void Translate(double x, double y, double rx, boolean reset)
