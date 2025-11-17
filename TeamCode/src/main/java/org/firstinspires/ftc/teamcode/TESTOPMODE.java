@@ -107,6 +107,8 @@ public class TESTOPMODE extends LinearOpMode{
             boolean activateAutoTarget = gamepad1.dpad_right;
             boolean deactivateAutoTarget = gamepad1.dpad_down;
 
+            boolean reverseIntake = gamepad1.dpad_left;
+
             double distance = limelight.GetDistance();
 
             boolean raiseNudger = gamepad2.y;
@@ -139,6 +141,12 @@ public class TESTOPMODE extends LinearOpMode{
             if (gamepad1.b)
             {
                 intake1.setPower(0.6);
+            }
+
+            // Reverse intake code
+
+            if (reverseIntake) {
+                shooter.ActivateShooter(false, true);
             }
 
             if (activateAutoShoot)
