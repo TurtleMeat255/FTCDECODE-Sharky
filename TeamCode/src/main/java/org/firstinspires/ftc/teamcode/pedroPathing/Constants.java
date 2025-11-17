@@ -5,6 +5,7 @@ import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
+import com.pedropathing.ftc.localization.constants.OTOSConstants;
 import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
@@ -12,22 +13,18 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.pedropathing.ftc.localization.Encoder;
 import com.pedropathing.ftc.localization.constants.DriveEncoderConstants;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 
 // bot weight - 27.6 lb
 public class Constants {
-    public static DriveEncoderConstants localizerConstants = new DriveEncoderConstants()
-            .rightFrontMotorName("frontRightMotor")
-            .rightRearMotorName("backRightMotor")
-            .leftRearMotorName("backLeftMotor")
-            .leftFrontMotorName("frontLeftMotor")
-            .leftFrontEncoderDirection(Encoder.REVERSE)
-            .leftRearEncoderDirection(Encoder.REVERSE)
-            .rightFrontEncoderDirection(Encoder.FORWARD)
-            .rightRearEncoderDirection(Encoder.FORWARD)
-
-            .forwardTicksToInches(0.00617384)
-            .strafeTicksToInches(0.00640987)
-            .turnTicksToInches(0.00094804755);
+    public static OTOSConstants localizerConstants = new OTOSConstants()
+            .hardwareMapName("otos")
+            .linearUnit(DistanceUnit.INCH)
+            .angleUnit(AngleUnit.RADIANS);
+            //.linearScalar(multiplier)
+            //.angularScalar(multiplier);
 
 
 
@@ -57,8 +54,8 @@ public class Constants {
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
+                .OTOSLocalizer(localizerConstants)
                 .mecanumDrivetrain(driveConstants)
-                .driveEncoderLocalizer(localizerConstants)
                 .pathConstraints(pathConstraints)
                 .build();
     }
