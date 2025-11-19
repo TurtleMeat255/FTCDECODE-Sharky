@@ -115,7 +115,7 @@ public class TESTOPMODE extends LinearOpMode{
 
             if (autoTargeting)
             {
-                drivetrain.RobotCentricAlign(xPos,yPos, limelight.GetTX());
+                drivetrain.RobotCentricAlign(xPos,yPos,limelight.GetTX());
             }
             else
             {

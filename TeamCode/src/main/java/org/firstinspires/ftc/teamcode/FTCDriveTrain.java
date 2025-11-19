@@ -21,7 +21,7 @@ public class FTCDriveTrain
     DcMotor backRightMotor;
     IMU imu;
 
-    double kp = 0.1;
+    double kp = 0.2;
     double kd = 0;
     ElapsedTime dt = new ElapsedTime();
     double lastError = 0;
@@ -71,16 +71,7 @@ public class FTCDriveTrain
     {
         double rx = PID(tx);
 
-        double denominator = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rx), 1);
-        double frontLeftPower = (y + x + rx) / denominator;
-        double backLeftPower = (y - x + rx) / denominator;
-        double frontRightPower = (y - x - rx) / denominator;
-        double backRightPower = (y + x - rx) / denominator;
-
-        frontLeftMotor.setPower(frontLeftPower * moveSpeed);
-        backLeftMotor.setPower(backLeftPower * moveSpeed);
-        frontRightMotor.setPower(frontRightPower * moveSpeed);
-        backRightMotor.setPower(backRightPower * moveSpeed);
+        RobotCentric(x,y,rx);
     }
 
     private double PID(double tx)

@@ -23,8 +23,8 @@ public class Constants {
             .hardwareMapName("otos")
             .linearUnit(DistanceUnit.INCH)
             .angleUnit(AngleUnit.RADIANS)
-            .linearScalar(67)
-            .angularScalar(67);
+            .linearScalar(1.0431)
+            .angularScalar(0.9983);
 
 
     public static FollowerConstants followerConstants = new FollowerConstants()
