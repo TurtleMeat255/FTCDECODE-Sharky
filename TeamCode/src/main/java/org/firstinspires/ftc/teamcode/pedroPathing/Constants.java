@@ -22,10 +22,9 @@ public class Constants {
     public static OTOSConstants localizerConstants = new OTOSConstants()
             .hardwareMapName("otos")
             .linearUnit(DistanceUnit.INCH)
-            .angleUnit(AngleUnit.RADIANS);
-            //.linearScalar(multiplier)
-            //.angularScalar(multiplier);
-
+            .angleUnit(AngleUnit.RADIANS)
+            .linearScalar(67)
+            .angularScalar(67);
 
 
     public static FollowerConstants followerConstants = new FollowerConstants()
