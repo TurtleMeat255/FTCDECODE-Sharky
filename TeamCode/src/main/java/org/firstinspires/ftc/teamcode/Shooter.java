@@ -35,7 +35,17 @@ public class Shooter {
     3700 rpm
     30 degree
 
+
+    Thanks Jacob!!
      */
+
+    public enum ShootState {
+        FAR_LOB_SHOT,
+        FAR_HARD_SHOT,
+        MEDIUM_SHOT,
+        CLOSE_SHOT,
+    }
+
 
     DcMotorEx shooter1;
     DcMotorEx shooter2;
@@ -59,6 +69,7 @@ public class Shooter {
 
     ElapsedTime dt = new ElapsedTime();
     double encoderResolution = 28;
+    private Shooter.ShootState currentState = Shooter.ShootState.MEDIUM_SHOT;
 
     public void init(HardwareMap hwMap) {
         shooter1 = hwMap.get(DcMotorEx.class, "Shooter1"); //
@@ -71,6 +82,37 @@ public class Shooter {
         shooter1.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(kp,0,kd,0));
         shooter2.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(kp,0,kd,0));
     }
+
+    public void updateShooter() {
+        switch(currentState) {
+
+            case FAR_LOB_SHOT:
+                SetShooterPower(3300);
+                SetHoodPosition(0.40);
+                break;
+
+            case FAR_HARD_SHOT:
+                SetShooterPower(3100);
+                SetHoodPosition(0.2);
+                break;
+
+            case MEDIUM_SHOT:
+                SetShooterPower(3000);
+                SetHoodPosition(0.30);
+                break;
+
+            case CLOSE_SHOT:
+                SetShooterPower(2700);
+                SetHoodPosition(0.40);
+                break;
+
+            default:
+                SetShooterPower(0);
+                SetHoodPosition(0.30);
+                break;
+        }
+    }
+
     public void ActivateShooter(boolean Shoot, boolean backShoot) {
         if (Shoot)
         {
@@ -79,8 +121,8 @@ public class Shooter {
         }
 
         else if (backShoot) {
-            shooter1.setPower(-shooterSpeed * 0.35);
-            shooter2.setPower(-shooterSpeed * 0.35);
+            shooter1.setPower(-shooterSpeed * 0.15);
+            shooter2.setPower(-shooterSpeed * 0.15);
         }
         else
         {
