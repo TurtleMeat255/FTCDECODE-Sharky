@@ -133,22 +133,22 @@ public class FTCSwerveDrive {
 
 
         // Check for the 180-degree flip (Optimization)
-        if (Math.abs(angle_error_fr) > 90.0) {
+        if (Math.abs(angle_error_fr) > 60.0) {
             angle_fr_deg += (angle_error_fr > 0) ? -180.0 : 180.0;
             speed_fr *= -1.0;
         }
 
-        if (Math.abs(angle_error_fl) > 90) {
+        if (Math.abs(angle_error_fl) > 60.0) {
             angle_fl_deg += (angle_error_fl > 0) ? -180.0 : 180.0;
             speed_fl *= -1.0;
         }
 
-        if (Math.abs(angle_error_rl) > 90) {
+        if (Math.abs(angle_error_rl) > 60.0) {
             angle_rl_deg += (angle_error_rl > 0) ? -180.0 : 180.0;
             speed_rl *= -1.0;
         }
 
-        if (Math.abs(angle_error_rr) > 90) {
+        if (Math.abs(angle_error_rr) > 60.0) {
             angle_rr_deg += (angle_error_rr > 0) ? -180.0 : 180.0;
             speed_rr *= -1.0;
         }
@@ -194,7 +194,7 @@ public class FTCSwerveDrive {
 
     private double mapAngleToServo(double angle) {
 
-        final double Servo_Range_Degrees = 270.0;
+        final double Servo_Range_Degrees = 300.0;
 
         double positive_angle = (angle + 360) % 360;
 
