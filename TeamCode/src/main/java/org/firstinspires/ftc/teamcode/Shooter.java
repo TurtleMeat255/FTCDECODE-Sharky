@@ -44,6 +44,7 @@ public class Shooter {
         FAR_HARD_SHOT,
         MEDIUM_SHOT,
         CLOSE_SHOT,
+        NO_SHOT,
     }
 
 
@@ -51,8 +52,18 @@ public class Shooter {
     DcMotorEx shooter2;
     Servo Hood1;
     Servo Hood2;
+    AprilTagLimeLight limelight = new AprilTagLimeLight();
     boolean LastUp = false;
     boolean LastDown = false;
+
+    boolean IS_FAR_LOB_SHOT = false;
+
+    boolean IS_FAR_HARD_SHOT = false;
+
+    boolean IS_MEDIUM_SHOT = true;
+
+    boolean IS_CLOSE_SHOT = false;
+
     double position = 0.2;
 
     double shooterSpeed = 0.7;
@@ -67,6 +78,8 @@ public class Shooter {
     final double GEAR_REDUCTION = 1;
     final double COUNTS_PER_WHEEL_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION;
 
+    private boolean wasShootButtonPressed = false;
+
     ElapsedTime dt = new ElapsedTime();
     double encoderResolution = 28;
     private Shooter.ShootState currentState = Shooter.ShootState.MEDIUM_SHOT;
@@ -78,9 +91,42 @@ public class Shooter {
         Hood2 = hwMap.get(Servo.class, "Hood2");
         Hood2.setDirection(Servo.Direction.REVERSE);
         shooter2.setDirection(DcMotor.Direction.REVERSE);
+        limelight.init(hwMap);
 
         shooter1.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(kp,0,kd,0));
         shooter2.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(kp,0,kd,0));
+    }
+
+    public void update(boolean isShootButtonPressed, boolean isHardShotPressed) {
+
+        double currentDistance = limelight.GetDistance();
+
+        final double CLOSE_LIMIT = 40.0;
+        final double MEDIUM_LIMIT = 55.0;
+
+        if (isShootButtonPressed) {
+
+            if (currentDistance > 0 && currentDistance < CLOSE_LIMIT) {
+                currentState = ShootState.CLOSE_SHOT;
+            } else if (currentDistance >= CLOSE_LIMIT && currentDistance < MEDIUM_LIMIT) {
+                currentState = ShootState.MEDIUM_SHOT;
+            } else if (currentDistance >= MEDIUM_LIMIT) {
+
+                if (isHardShotPressed) {
+                    currentState = ShootState.FAR_HARD_SHOT;
+                } else {
+                    currentState = ShootState.FAR_LOB_SHOT;
+                }
+            } else {
+
+                currentState = ShootState.NO_SHOT;
+            }
+        } else {
+
+            currentState = ShootState.NO_SHOT;
+        }
+
+        updateShooter();
     }
 
     public void updateShooter() {
@@ -89,24 +135,44 @@ public class Shooter {
             case FAR_LOB_SHOT:
                 SetShooterPower(3300);
                 SetHoodPosition(0.40);
+
+                IS_FAR_LOB_SHOT = true;
+                IS_FAR_HARD_SHOT = false;
+                IS_MEDIUM_SHOT = false;
+                IS_CLOSE_SHOT = false;
                 break;
 
             case FAR_HARD_SHOT:
                 SetShooterPower(3100);
                 SetHoodPosition(0.2);
+
+                IS_FAR_LOB_SHOT = false;
+                IS_FAR_HARD_SHOT = true;
+                IS_MEDIUM_SHOT = false;
+                IS_CLOSE_SHOT = false;
                 break;
 
             case MEDIUM_SHOT:
                 SetShooterPower(3000);
                 SetHoodPosition(0.30);
+
+                IS_FAR_LOB_SHOT = false;
+                IS_FAR_HARD_SHOT = false;
+                IS_MEDIUM_SHOT = true;
+                IS_CLOSE_SHOT = false;
                 break;
 
             case CLOSE_SHOT:
                 SetShooterPower(2700);
                 SetHoodPosition(0.40);
+
+                IS_FAR_LOB_SHOT = false;
+                IS_FAR_HARD_SHOT = false;
+                IS_MEDIUM_SHOT = false;
+                IS_CLOSE_SHOT = true;
                 break;
 
-            default:
+            case NO_SHOT:
                 SetShooterPower(0);
                 SetHoodPosition(0.30);
                 break;

@@ -58,7 +58,7 @@ public class TESTOPMODE extends LinearOpMode{
     @Override
     public void runOpMode() {
         drivetrain.init(hardwareMap);
-//        intake.init(hardwareMap);
+        intake.init(hardwareMap);
         spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
         colorSensor.init(hardwareMap);
@@ -77,29 +77,11 @@ public class TESTOPMODE extends LinearOpMode{
         waitForStart();
         while (opModeIsActive())
         {
+
+            // Gamepad 1
             double xPos = gamepad1.left_stick_x;
             double yPos = -gamepad1.left_stick_y;
             double rot = gamepad1.right_stick_x;
-
-            boolean resetButton = gamepad1.a;
-
-            boolean spindexSixth = gamepad2.dpad_left;
-            boolean spindexThird = gamepad2.dpad_up;
-
-            boolean activateAutoShoot = gamepad2.dpad_right;
-            boolean activateManualShoot = gamepad2.dpad_down;
-
-            double spindexerManual = gamepad2.right_stick_x;
-
-            // You will also need these for the color selection logic
-            boolean shootAPurple = gamepad2.x;
-            boolean shootAGreen = gamepad2.b;
-
-            boolean hoodUp = gamepad2.right_bumper;
-            boolean hoodDown = gamepad2.left_bumper;
-
-            double intakePressed = gamepad2.right_trigger;
-            double shooterPressed = gamepad2.left_trigger;
 
             boolean shiftRpmDown = gamepad1.left_bumper;
             boolean shiftRpmUp = gamepad1.right_bumper;
@@ -107,9 +89,45 @@ public class TESTOPMODE extends LinearOpMode{
             boolean activateAutoTarget = gamepad1.dpad_right;
             boolean deactivateAutoTarget = gamepad1.dpad_down;
 
-            boolean reverseIntake = gamepad1.dpad_left;
+            boolean reverseIntakeShooter = gamepad1.dpad_left;
+
+            boolean resetButton = gamepad1.a;
+
+            boolean reverseIntakeFront = gamepad1.b;
+
+            // Gamepad 2
+
+                //Spindexer
+
+            boolean spindexSixth = gamepad2.dpad_left;
+            boolean spindexThird = gamepad2.dpad_up;
+            double spindexerManual = gamepad2.right_stick_x;
+
+                // Shooter
+
+            boolean activateAutoShoot = gamepad2.dpad_right;
+            boolean activateManualShoot = gamepad2.dpad_down;
+
+
+            // You will also need these for the color selection logic
+            boolean shootAPurple = gamepad2.x;
+            boolean shootAGreen = gamepad2.b;
+
+                // hood
+
+            boolean hoodUp = gamepad2.right_bumper;
+            boolean hoodDown = gamepad2.left_bumper;
+
+                // Intake
+
+            double intakePressed = gamepad2.right_trigger;
+            double shooterPressed = gamepad2.left_trigger;
+
+                // Limelight
 
             double distance = limelight.GetDistance();
+
+                // Nudger
 
             boolean raiseNudger = gamepad2.y;
 
@@ -138,14 +156,14 @@ public class TESTOPMODE extends LinearOpMode{
                 intake1.setPower(0);
             }
 
-            if (gamepad1.b)
+            if (reverseIntakeFront)
             {
                 intake1.setPower(0.6);
             }
 
             // Reverse intake code
 
-            if (reverseIntake) {
+            if (reverseIntakeShooter) {
                 shooter.ActivateShooter(false, true);
             }
 
