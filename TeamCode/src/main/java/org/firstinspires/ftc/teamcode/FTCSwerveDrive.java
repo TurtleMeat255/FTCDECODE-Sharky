@@ -198,7 +198,13 @@ public class FTCSwerveDrive {
 
         double positive_angle = (angle + 360) % 360;
 
-        double servo_position = positive_angle / 360.0;
+        double servo_position = 0.5 + (angle / 300.0);
+
+        if (servo_position < 0.0) {
+            servo_position = 0.0;
+        } else if (servo_position > 1.0) {
+            servo_position = 1.0;
+        }
 
         return servo_position;
     }
