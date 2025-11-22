@@ -1,20 +1,10 @@
 package org.firstinspires.ftc.teamcode;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.DcMotor.RunMode;
-import com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-
-// Java Math
-import java.lang.Math;
 
 public class FTCSwerveDrive {
 
@@ -26,38 +16,33 @@ public class FTCSwerveDrive {
     Servo backLeftServo;
     Servo frontRightServo;
     Servo backRightServo;
-    IMU imu;
+
+    SparkFunOTOS otos;
 
     final double L = 8.0;
     final double W = 8.0;
-    double maxSped = 1.0;
+
     double current_angle_fr = 0.0;
     double current_angle_fl = 0.0;
     double current_angle_rl = 0.0;
     double current_angle_rr = 0.0;
 
-
-
     public void init(HardwareMap hwMap) {
-        frontLeftMotor = hwMap.get(DcMotorEx.class, "frontLeftMotor");
-        frontLeftServo = hwMap.get(Servo.class, "frontLeftServo");
+        frontLeftMotor  = hwMap.get(DcMotorEx.class, "frontLeftMotor");
+        frontLeftServo  = hwMap.get(Servo.class,     "frontLeftServo");
 
         frontRightMotor = hwMap.get(DcMotorEx.class, "frontRightMotor");
-        frontRightServo = hwMap.get(Servo.class, "frontRightServo");
+        frontRightServo = hwMap.get(Servo.class,     "frontRightServo");
 
-        backRightMotor = hwMap.get(DcMotorEx.class, "backRightMotor");
-        backRightServo = hwMap.get(Servo.class, "backRightServo");
+        backRightMotor  = hwMap.get(DcMotorEx.class, "backRightMotor");
+        backRightServo  = hwMap.get(Servo.class,     "backRightServo");
 
-        backLeftMotor = hwMap.get(DcMotorEx.class, "backLeftMotor");
-        backLeftServo = hwMap.get(Servo.class, "backLeftServo");
+        backLeftMotor   = hwMap.get(DcMotorEx.class, "backLeftMotor");
+        backLeftServo   = hwMap.get(Servo.class,     "backLeftServo");
 
-        imu = hwMap.get(IMU.class, "imu");
-        // Adjust the orientation parameters to match your robot
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-                RevHubOrientationOnRobot.UsbFacingDirection.UP));
-        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-        imu.initialize(parameters);
+        otos = hwMap.get(SparkFunOTOS.class, "sensor_otos");
+
+        otos.calibrateImu();
     }
 
     public void swerveDrive(double y_cmd_field, double x_cmd_field, double turn_cmd, boolean reset) {
@@ -69,28 +54,29 @@ public class FTCSwerveDrive {
          */
 
         // field centric
-        double heading_rad = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        SparkFunOTOS.Pose2d currentPose = SparkFunOTOS.getPose();
+        double heading_rad = currentPose.heading;
 
-        double y_cmd_robot = y_cmd_field * Math.cos(heading_rad) - x_cmd_field * Math.sin(heading_rad);
-        double x_cmd_robot = y_cmd_field * Math.sin(heading_rad) + x_cmd_field * Math.cos(heading_rad);
 
-        double y_fr = y_cmd_robot - turn_cmd * L; // The rotation of the frontRight motor.
-        double x_fr = x_cmd_robot + turn_cmd * W; // The horizontal rotation of the frontRight motor
+        // Correct field→robot transformation
+        double x_cmd_robot = x_cmd_field * Math.cos(heading_rad) - y_cmd_field * Math.sin(heading_rad);
+        double y_cmd_robot = x_cmd_field * Math.sin(heading_rad) + y_cmd_field * Math.cos(heading_rad);
 
-        double y_fl = y_cmd_robot - turn_cmd * L; // The rotation of the frontLeft motor
-        double x_fl = x_cmd_robot - turn_cmd * W; // The horizontal rotation of the frontLeft motor
+        double y_fr = y_cmd_robot - turn_cmd * L;
+        double x_fr = x_cmd_robot + turn_cmd * W;
 
-        double y_rl = y_cmd_robot + turn_cmd * L; // The rotation of the backLeft Motor
-        double x_rl = x_cmd_robot - turn_cmd * W; // The horizontal rotation of the backLeft motor
+        double y_fl = y_cmd_robot - turn_cmd * L;
+        double x_fl = x_cmd_robot - turn_cmd * W;
 
-        double y_rr = y_cmd_robot + turn_cmd * L; // The rotation of the backRight motor
-        double x_rr = x_cmd_robot + turn_cmd * W; // The horizontal rotation of the backRight motor... WHY ARE YOU SICK JACOB!!
+        double y_rl = y_cmd_robot + turn_cmd * L;
+        double x_rl = x_cmd_robot - turn_cmd * W;
 
+        double y_rr = y_cmd_robot + turn_cmd * L;
+        double x_rr = x_cmd_robot + turn_cmd * W; // WHY ARE YOU SICK JACOB!!
 
         /*
         Using some simple grade 9 METH!! We can do this trust me
          */
-
         double speed_fr = Math.hypot(x_fr, y_fr);
         double speed_fl = Math.hypot(x_fl, y_fl);
         double speed_rl = Math.hypot(x_rl, y_rl);
@@ -100,39 +86,31 @@ public class FTCSwerveDrive {
         Code use atan2(x, y) to make 0 degrees = forward
         We use the METH.atan2 so we get the 180 OR -180 degrees for the servo. SHII
          */
-
         double angle_fr_deg = Math.toDegrees(Math.atan2(x_fr, y_fr));
         double angle_fl_deg = Math.toDegrees(Math.atan2(x_fl, y_fl));
         double angle_rl_deg = Math.toDegrees(Math.atan2(x_rl, y_rl));
         double angle_rr_deg = Math.toDegrees(Math.atan2(x_rr, y_rr));
 
-        maxSped = Math.max(maxSped, Math.abs(speed_fr));
-        maxSped = Math.max(maxSped, Math.abs(speed_fl));
-        maxSped = Math.max(maxSped, Math.abs(speed_rl));
-        maxSped = Math.max(maxSped, Math.abs(speed_rr));
+        // Normalize speeds
+        double max = Math.max(
+                Math.max(speed_fr, speed_fl),
+                Math.max(speed_rl, speed_rr)
+        );
 
-        if (maxSped > 1.0) {
-            speed_fr /= maxSped;
-            speed_fl /= maxSped;
-            speed_rl /= maxSped;
-            speed_rr /= maxSped;
+        if (max > 1.0) {
+            speed_fr /= max;
+            speed_fl /= max;
+            speed_rl /= max;
+            speed_rr /= max;
         }
 
-        double angle_error_fr = angle_fr_deg - current_angle_fr;
-        double angle_error_fl = angle_fl_deg - current_angle_fl;
-        double angle_error_rl = angle_rl_deg - current_angle_rl;
-        double angle_error_rr = angle_rr_deg - current_angle_rr;
+        // Compute angle errors
+        double angle_error_fr = normalizeAngle(angle_fr_deg - current_angle_fr);
+        double angle_error_fl = normalizeAngle(angle_fl_deg - current_angle_fl);
+        double angle_error_rl = normalizeAngle(angle_rl_deg - current_angle_rl);
+        double angle_error_rr = normalizeAngle(angle_rr_deg - current_angle_rr);
 
-
-
-        // Just some more METH!
-        angle_error_fr = normalizeAngle(angle_error_fr);
-        angle_error_fl = normalizeAngle(angle_error_fl);
-        angle_error_rl = normalizeAngle(angle_error_rl);
-        angle_error_rr = normalizeAngle(angle_error_rr);
-
-
-        // Check for the 180-degree flip (Optimization)
+        // *** 60-degree flip optimization (YOUR REQUEST) ***
         if (Math.abs(angle_error_fr) > 60.0) {
             angle_fr_deg += (angle_error_fr > 0) ? -180.0 : 180.0;
             speed_fr *= -1.0;
@@ -153,13 +131,13 @@ public class FTCSwerveDrive {
             speed_rr *= -1.0;
         }
 
-        // (Map -180 to 180 to servo range)
+        // Servo mapping for 0–300° rotation
         double servo_pos_fr = mapAngleToServo(angle_fr_deg);
         double servo_pos_fl = mapAngleToServo(angle_fl_deg);
         double servo_pos_rl = mapAngleToServo(angle_rl_deg);
         double servo_pos_rr = mapAngleToServo(angle_rr_deg);
 
-        // Update the stored angle and set hardware
+        // Apply angles + speeds
         current_angle_fr = angle_fr_deg;
         frontRightServo.setPosition(servo_pos_fr);
         frontRightMotor.setPower(speed_fr);
@@ -176,36 +154,30 @@ public class FTCSwerveDrive {
         backRightServo.setPosition(servo_pos_rr);
         backRightMotor.setPower(speed_rr);
 
+        // Optional IMU reset
         if (reset) {
-            imu.resetYaw();
+            otos.setHeading(0); // SparkFunOTOS recommended method
         }
-
     }
 
+    // [-180, 180]
     private double normalizeAngle(double angle) {
-        while (angle > 180.0) {
-            angle -= 360.0;
-        }
-        while (angle < -180.0) {
-            angle += 360.0;
-        }
+        while (angle > 180.0) angle -= 360.0;
+        while (angle < -180.0) angle += 360.0;
         return angle;
     }
 
-    private double mapAngleToServo(double angle) {
+    // Map 0–360 wheel angle → 0–300° servo → 0.0–1.0
+    private double mapAngleToServo(double angleDeg) {
+        final double SERVO_RANGE = 300.0;
 
-        final double Servo_Range_Degrees = 300.0;
+        double positive = (angleDeg % 360 + 360) % 360;
 
-        double positive_angle = (angle + 360) % 360;
+        double pos = positive / SERVO_RANGE;
 
-        double servo_position = 0.5 + (angle / 300.0);
+        if (pos < 0.0) pos = 0.0;
+        if (pos > 1.0) pos = 1.0;
 
-        if (servo_position < 0.0) {
-            servo_position = 0.0;
-        } else if (servo_position > 1.0) {
-            servo_position = 1.0;
-        }
-
-        return servo_position;
+        return pos;
     }
 }
