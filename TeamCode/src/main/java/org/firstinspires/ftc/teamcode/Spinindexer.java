@@ -83,18 +83,16 @@ public class Spinindexer {
         }
     }
     public boolean withinRange (double targetThing) {
-        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) >= 10)
+        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) >= 15)
         {
             positionalCorrectness.reset();
         }
-        if (positionalCorrectness.seconds() > 0.1)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return positionalCorrectness.seconds() > 0.1;
+    }
+
+    public double GetPositionalCorrectness()
+    {
+        return positionalCorrectness.seconds();
     }
 
     public void SpindexerPower(double power)

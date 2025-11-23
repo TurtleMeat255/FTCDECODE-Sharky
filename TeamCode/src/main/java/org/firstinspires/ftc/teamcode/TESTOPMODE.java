@@ -286,7 +286,6 @@ public class TESTOPMODE extends LinearOpMode{
             }
 
             if (coloringRn) {
-                shooter.SetShooterRPM(firingRPM);
                 if (spinindexer.withinRange(inputAngle)) {
                     if (colorSensor.GetDetectedColor() == colorIWant) {
                         readyToShoot = true;
@@ -369,12 +368,13 @@ public class TESTOPMODE extends LinearOpMode{
 
             dt.reset();
 
-            if (shooter.RPMCorrect(firingRPM))
+            if (readyToShoot)
             {
-                if (readyToShoot)
+                shooter.SetShooterRPM(firingRPM);
+
+                if (shooter.RPMCorrect(firingRPM))
                 {
                     pushUp = true;
-                    pushUpTimer.reset();
                 }
             }
 
@@ -399,6 +399,7 @@ public class TESTOPMODE extends LinearOpMode{
             telemetry.addData("current shooter actual rpm", shooter.GetShooterRPM());
             telemetry.addData("shooter at rpm", shooter.RPMCorrect(firingRPM));
             telemetry.addData("distance", limelight.GetDistance());
+            telemetry.addData("GetPositionalCorrectness", spinindexer.GetPositionalCorrectness());
             telemetry.update();
         }
     }
