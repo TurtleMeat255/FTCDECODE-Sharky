@@ -52,10 +52,9 @@ public class FTCSwerveDrive {
         x_cmd_field = the gamepad control for x-axis of bot. Left and right from the ctrl hub / strafe
         turn_cmd = the gamepad control for turning of the bot.
          */
-
         // field centric
-        SparkFunOTOS.Pose2d currentPose = SparkFunOTOS.getPose();
-        double heading_rad = currentPose.heading;
+        SparkFunOTOS.Pose2D currentPose = otos.getPosition();
+        double heading_rad = currentPose.h;
 
 
         // Correct field→robot transformation
@@ -72,7 +71,7 @@ public class FTCSwerveDrive {
         double x_rl = x_cmd_robot - turn_cmd * W;
 
         double y_rr = y_cmd_robot + turn_cmd * L;
-        double x_rr = x_cmd_robot + turn_cmd * W; // WHY ARE YOU SICK JACOB!!
+        double x_rr = x_cmd_robot + turn_cmd * W; // WHY ARE YOU SICK JACOB!! - my bad :(
 
         /*
         Using some simple grade 9 METH!! We can do this trust me
@@ -156,7 +155,7 @@ public class FTCSwerveDrive {
 
         // Optional IMU reset
         if (reset) {
-            otos.setHeading(0); // SparkFunOTOS recommended method
+            otos.setPosition(new SparkFunOTOS.Pose2D(currentPose.x, currentPose.y, 0));
         }
     }
 
