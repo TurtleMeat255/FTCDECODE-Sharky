@@ -252,6 +252,7 @@ public class TESTOPMODE extends LinearOpMode{
             }
 
             if (spindexThird && canMove && canSwapMode) {
+                spinindexer.BallKP(true);
                 inputAngle += 120;
                 canMove = false;
             }
@@ -261,6 +262,7 @@ public class TESTOPMODE extends LinearOpMode{
             }
 
             if (spindexSixth && canSwapMode) {
+                spinindexer.BallKP(false);
                 inputAngle += 60;
                 intakeAligned = !intakeAligned;
                 canSwapMode = false;
@@ -318,7 +320,8 @@ public class TESTOPMODE extends LinearOpMode{
 
                 if (spinindexer.withinRange(inputAngle))
                 {
-                    spinindexer.RapidFiring(false);
+                    spinindexer.RapidFiring(true);
+                    spinindexer.BallKP(true);
                     for (int i = 0; i < 3; i ++)
                     {
                         if (i > 0)

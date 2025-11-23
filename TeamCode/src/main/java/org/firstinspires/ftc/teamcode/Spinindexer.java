@@ -132,11 +132,21 @@ public class Spinindexer {
         if (input)
         {
             spindexerSpeed = 0.8;
-            kp = 0.0045;
         }
         else
         {
             spindexerSpeed = 0.5;
+        }
+    }
+
+    public void BallKP(boolean input)
+    {
+        if (input)
+        {
+            kp = 0.012;
+        }
+        else
+        {
             kp = 0.007;
         }
     }
