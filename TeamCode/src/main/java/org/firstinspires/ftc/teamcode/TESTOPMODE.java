@@ -324,9 +324,9 @@ public class TESTOPMODE extends LinearOpMode{
 
                     for (int i = 0; i < 2; i ++)
                     {
+                        inputAngle += 120;
                         while (!shooter.RPMCorrect(firingRPM) || !spinindexer.withinRange(inputAngle))
                         {
-                            inputAngle += 120;
                             shooter.SetShooterRPM(firingRPM);
                             spinindexer.PID(inputAngle);
 
@@ -355,6 +355,7 @@ public class TESTOPMODE extends LinearOpMode{
                         spinindexer.nudging(false);
                         sleep(200);
                     }
+                    rapidFiring = false;
                 }
             }
 
