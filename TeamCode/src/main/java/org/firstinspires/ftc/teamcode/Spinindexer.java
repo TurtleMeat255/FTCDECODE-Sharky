@@ -27,6 +27,8 @@ public class Spinindexer {
     private double purpleAngle = 0;
     double encoderResolution = 537.7;
 
+    double spindexerSpeed = 0.5;
+
     public void init(HardwareMap hwMap) {
         spinner = hwMap.get(DcMotor.class, "spinner");
         nudger = hwMap.get(Servo.class, "nudger");
@@ -79,7 +81,7 @@ public class Spinindexer {
         }
     }
     public boolean withinRange (double targetThing) {
-        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) <= 15) {
+        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) <= 5) {
             return true;
         } else {
             return false;
@@ -118,11 +120,16 @@ public class Spinindexer {
         if (power <= -1) {
             power = -1;
         }
-        spinner.setPower(power * -0.5);
+        spinner.setPower(power * -spindexerSpeed);
         PIDTimer.reset();
     }
     public void runNudger(double input) {
         nudger.setPosition(input);
+    }
+
+    public void UpdateSpindexerSpeed(double input)
+    {
+        spindexerSpeed = input;
     }
 
     public double GetCurrentPosition()

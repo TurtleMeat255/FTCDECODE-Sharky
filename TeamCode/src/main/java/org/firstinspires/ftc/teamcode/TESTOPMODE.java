@@ -317,14 +317,13 @@ public class TESTOPMODE extends LinearOpMode{
 
                 if (spinindexer.withinRange(inputAngle))
                 {
-                    spinindexer.nudging(true);
-                    sleep(300);
-                    spinindexer.nudging(false);
-                    sleep(200);
-
-                    for (int i = 0; i < 2; i ++)
+                    spinindexer.UpdateSpindexerSpeed(0.8);
+                    for (int i = 0; i < 3; i ++)
                     {
-                        inputAngle += 120;
+                        if (i > 0)
+                        {
+                            inputAngle += 120;
+                        }
                         while (!shooter.RPMCorrect(firingRPM) || !spinindexer.withinRange(inputAngle))
                         {
                             shooter.SetShooterRPM(firingRPM);
@@ -357,6 +356,11 @@ public class TESTOPMODE extends LinearOpMode{
                     }
                     rapidFiring = false;
                 }
+            }
+
+            if (!rapidFiring)
+            {
+                spinindexer.UpdateSpindexerSpeed(0.5);
             }
 
             dt.reset();
