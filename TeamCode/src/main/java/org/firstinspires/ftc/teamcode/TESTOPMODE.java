@@ -54,6 +54,7 @@ public class TESTOPMODE extends LinearOpMode{
     int rpmIncrement = 200;
 
     boolean autoTargeting = false;
+    boolean rapidFiring = false;
 
     @Override
     public void runOpMode() {
@@ -108,10 +109,10 @@ public class TESTOPMODE extends LinearOpMode{
             boolean activateAutoShoot = gamepad2.dpad_right;
             boolean activateManualShoot = gamepad2.dpad_down;
 
-
             // You will also need these for the color selection logic
             boolean shootAPurple = gamepad2.x;
             boolean shootAGreen = gamepad2.b;
+            boolean rapidFire = gamepad2.a;
 
                 // hood
 
@@ -163,7 +164,7 @@ public class TESTOPMODE extends LinearOpMode{
 
             // Reverse intake code
 
-            if (reverseIntakeShooter) {
+            if (reverseIntakeShooter && !rapidFiring) {
                 shooter.ActivateShooter(false, true);
             }
 
@@ -239,7 +240,10 @@ public class TESTOPMODE extends LinearOpMode{
             }
             else
             {
-                shooter.SetShooterRPM(0);
+                if (!rapidFiring)
+                {
+                    shooter.SetShooterRPM(0);
+                }
             }
 
             if (Math.abs(spindexerManual) > 0.3)
@@ -297,9 +301,61 @@ public class TESTOPMODE extends LinearOpMode{
                 }
             }
 
-            if (!pushUp)
+            if (!pushUp && !rapidFiring)
             {
                 spinindexer.PID(inputAngle);
+            }
+
+            if (rapidFire)
+            {
+                if (inputAngle % 120 != 0)
+                {
+                    inputAngle += 60;
+                }
+                spinindexer.PID(inputAngle);
+                rapidFiring = true;
+
+                if (spinindexer.withinRange(inputAngle))
+                {
+                    spinindexer.nudging(true);
+                    sleep(300);
+                    spinindexer.nudging(false);
+                    sleep(200);
+
+                    for (int i = 0; i < 2; i ++)
+                    {
+                        while (!shooter.RPMCorrect(firingRPM) || !spinindexer.withinRange(inputAngle))
+                        {
+                            inputAngle += 120;
+                            shooter.SetShooterRPM(firingRPM);
+                            spinindexer.PID(inputAngle);
+
+                            if (autoShoot)
+                            {
+                                if (distance > 66)
+                                {
+                                    firingRPM = 3300;
+                                    shooter.SetHoodPosition(0.8);
+                                }
+                                else if (distance > 45)
+                                {
+                                    firingRPM = 3000;
+                                    shooter.SetHoodPosition(0.45);
+                                }
+                                else
+                                {
+                                    firingRPM = 2700;
+                                    shooter.SetHoodPosition(0.8);
+                                }
+                            }
+                        }
+
+                        spinindexer.nudging(true);
+                        sleep(300);
+                        spinindexer.nudging(false);
+                        sleep(200);
+                    }
+                }
             }
 
             dt.reset();
