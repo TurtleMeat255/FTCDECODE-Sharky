@@ -15,7 +15,7 @@ public class Spinindexer {
     private double currentAngle = 360 * currentTicks/145.6;
     private final double kp = 0.015; // 0.025
     private final double ki = 0;
-    private final double kd = 0; // 0.00075
+    private final double kd = 0.001; // 0.00075
     private double lastError = 0;
     private double integralSum = 0;
     private static double nudgyPosition = 0.05;
@@ -118,7 +118,7 @@ public class Spinindexer {
         if (power <= -1) {
             power = -1;
         }
-        spinner.setPower(power * -0.3);
+        spinner.setPower(power * -0.5);
         PIDTimer.reset();
     }
     public void runNudger(double input) {
