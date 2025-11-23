@@ -29,6 +29,8 @@ public class Spinindexer {
 
     double spindexerSpeed = 0.5;
 
+    ElapsedTime positionalCorrectness = new ElapsedTime();
+
     public void init(HardwareMap hwMap) {
         spinner = hwMap.get(DcMotor.class, "spinner");
         nudger = hwMap.get(Servo.class, "nudger");
@@ -81,9 +83,16 @@ public class Spinindexer {
         }
     }
     public boolean withinRange (double targetThing) {
-        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) <= 10) {
+        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) >= 10)
+        {
+            positionalCorrectness.reset();
+        }
+        if (positionalCorrectness.seconds() > 0.1)
+        {
             return true;
-        } else {
+        }
+        else
+        {
             return false;
         }
     }

@@ -320,7 +320,7 @@ public class TESTOPMODE extends LinearOpMode{
 
                 if (spinindexer.withinRange(inputAngle))
                 {
-                    spinindexer.RapidFiring(true);
+//                    spinindexer.RapidFiring(true);
                     spinindexer.BallKP(true);
                     for (int i = 0; i < 3; i ++)
                     {
