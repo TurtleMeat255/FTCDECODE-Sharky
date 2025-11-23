@@ -240,7 +240,7 @@ public class TESTOPMODE extends LinearOpMode{
             }
             else
             {
-                if (!rapidFiring)
+                if (!rapidFiring && ! coloringRn)
                 {
                     shooter.SetShooterRPM(0);
                 }
@@ -284,6 +284,7 @@ public class TESTOPMODE extends LinearOpMode{
             }
 
             if (coloringRn) {
+                shooter.SetShooterRPM(firingRPM);
                 if (spinindexer.withinRange(inputAngle)) {
                     if (colorSensor.GetDetectedColor() == colorIWant) {
                         readyToShoot = true;
@@ -317,7 +318,7 @@ public class TESTOPMODE extends LinearOpMode{
 
                 if (spinindexer.withinRange(inputAngle))
                 {
-                    spinindexer.UpdateSpindexerSpeed(0.8);
+                    spinindexer.RapidFiring(true);
                     for (int i = 0; i < 3; i ++)
                     {
                         if (i > 0)
@@ -360,7 +361,7 @@ public class TESTOPMODE extends LinearOpMode{
 
             if (!rapidFiring)
             {
-                spinindexer.UpdateSpindexerSpeed(0.5);
+                spinindexer.RapidFiring(false);
             }
 
             dt.reset();

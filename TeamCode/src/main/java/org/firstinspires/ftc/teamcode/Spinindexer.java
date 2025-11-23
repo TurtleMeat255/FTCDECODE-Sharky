@@ -13,7 +13,7 @@ public class Spinindexer {
     private final ElapsedTime sinceMadeDown = new ElapsedTime();
     private int currentTicks = 0;
     private double currentAngle = 360 * currentTicks/145.6;
-    private final double kp = 0.007; // 0.015
+    private double kp = 0.007; // 0.015
     private final double ki = 0;
     private final double kd = 0; // 0.001
     private double lastError = 0;
@@ -127,9 +127,18 @@ public class Spinindexer {
         nudger.setPosition(input);
     }
 
-    public void UpdateSpindexerSpeed(double input)
+    public void RapidFiring(boolean input)
     {
-        spindexerSpeed = input;
+        if (input)
+        {
+            spindexerSpeed = 0.8;
+            kp = 0.0045;
+        }
+        else
+        {
+            spindexerSpeed = 0.5;
+            kp = 0.007;
+        }
     }
 
     public double GetCurrentPosition()
