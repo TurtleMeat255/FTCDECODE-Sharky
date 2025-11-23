@@ -81,7 +81,7 @@ public class Spinindexer {
         }
     }
     public boolean withinRange (double targetThing) {
-        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) <= 5) {
+        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) <= 10) {
             return true;
         } else {
             return false;
