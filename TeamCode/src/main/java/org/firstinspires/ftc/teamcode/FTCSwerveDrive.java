@@ -63,7 +63,7 @@ public class FTCSwerveDrive {
 
         double y_fr = y_cmd_robot - turn_cmd * L;
         double x_fr = x_cmd_robot + turn_cmd * W;
-
+//
         double y_fl = y_cmd_robot - turn_cmd * L;
         double x_fl = x_cmd_robot - turn_cmd * W;
 
