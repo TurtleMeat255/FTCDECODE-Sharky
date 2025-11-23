@@ -13,9 +13,9 @@ public class Spinindexer {
     private final ElapsedTime sinceMadeDown = new ElapsedTime();
     private int currentTicks = 0;
     private double currentAngle = 360 * currentTicks/145.6;
-    private final double kp = 0.015; // 0.025
-    private final double ki = 0;
-    private final double kd = 0.001; // 0.00075
+    private final double kp = 0.015; // 0.015
+    private final double ki = 0.001;
+    private final double kd = 0.001; // 0.001
     private double lastError = 0;
     private double integralSum = 0;
     private static double nudgyPosition = 0.05;
