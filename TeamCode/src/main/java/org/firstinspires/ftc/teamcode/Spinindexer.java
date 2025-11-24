@@ -158,6 +158,11 @@ public class Spinindexer {
         }
     }
 
+    public double GetKP()
+    {
+        return kp;
+    }
+
     public double GetCurrentPosition()
     {
         return spinner.getCurrentPosition();

@@ -319,7 +319,6 @@ public class TESTOPMODE extends LinearOpMode{
 
                 if (spinindexer.withinRange(inputAngle))
                 {
-//                    spinindexer.RapidFiring(true);
                     spinindexer.BallKP(true);
                     for (int i = 0; i < 3; i ++)
                     {
@@ -400,6 +399,7 @@ public class TESTOPMODE extends LinearOpMode{
             telemetry.addData("shooter at rpm", shooter.RPMCorrect(firingRPM));
             telemetry.addData("distance", limelight.GetDistance());
             telemetry.addData("GetPositionalCorrectness", spinindexer.GetPositionalCorrectness());
+            telemetry.addData("GetKP", spinindexer.GetKP());
             telemetry.update();
         }
     }
