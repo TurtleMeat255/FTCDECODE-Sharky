@@ -106,7 +106,7 @@ public class Spinindexer {
         double error = currentAngle - targetAngle;
         double derivative;
 
-        if (Math.abs(currentAngle - targetAngle) < 10)
+        if (Math.abs(currentAngle - targetAngle) < 5)
         {
             spinner.setPower(0);
             return;
