@@ -100,8 +100,11 @@ public class TESTOPMODE extends LinearOpMode{
 
                 //Spindexer
 
-            boolean spindexSixth = gamepad2.dpad_left;
-            boolean spindexThird = gamepad2.dpad_up;
+            boolean spindexSixthRight = gamepad2.dpad_right;
+            boolean spindexThirdRight = gamepad2.dpad_up;
+            boolean spindexSixthLeft = gamepad2.dpad_left;
+            boolean spindexThirdLeft = gamepad2.dpad_down;
+
             double spindexerManual = gamepad2.right_stick_x;
 
                 // Shooter
@@ -251,23 +254,44 @@ public class TESTOPMODE extends LinearOpMode{
                 inputAngle += spindexerManual/Math.abs(spindexerManual) * 120 * dt.seconds();
             }
 
-            if (spindexThird && canMove && canSwapMode) {
+            if (spindexThirdRight && canMove && canSwapMode) {
                 spinindexer.BallKD(true);
                 inputAngle += 120;
                 canMove = false;
             }
-            else if (!spindexThird)
+            else if (!spindexThirdRight)
             {
                 canMove = true;
             }
 
-            if (spindexSixth && canSwapMode) {
+            if (spindexSixthRight && canSwapMode) {
                 spinindexer.BallKD(false);
                 inputAngle += 60;
                 intakeAligned = !intakeAligned;
                 canSwapMode = false;
             }
-            else if (!spindexSixth)
+            else if (!spindexSixthRight)
+            {
+                canSwapMode = true;
+            }
+
+            if (spindexThirdLeft && canMove && canSwapMode) {
+                spinindexer.BallKD(true);
+                inputAngle -= 120;
+                canMove = false;
+            }
+            else if (!spindexThirdLeft)
+            {
+                canMove = true;
+            }
+
+            if (spindexSixthLeft && canSwapMode) {
+                spinindexer.BallKD(false);
+                inputAngle -= 60;
+                intakeAligned = !intakeAligned;
+                canSwapMode = false;
+            }
+            else if (!spindexSixthLeft)
             {
                 canSwapMode = true;
             }
@@ -310,15 +334,11 @@ public class TESTOPMODE extends LinearOpMode{
 
             if (rapidFire)
             {
-                if (inputAngle % 120 != 0)
-                {
-                    inputAngle += 60;
-                }
-                spinindexer.PID(inputAngle);
                 rapidFiring = true;
 
                 if (spinindexer.withinRange(inputAngle))
                 {
+                    drivetrain.RobotCentricAlign(0,0,0);
                     spinindexer.RapidFiring(true);
                     spinindexer.BallKD(true);
                     for (int i = 0; i < 3; i ++)

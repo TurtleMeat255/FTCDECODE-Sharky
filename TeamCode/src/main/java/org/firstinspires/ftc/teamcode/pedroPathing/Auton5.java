@@ -54,13 +54,14 @@ public class Auton5 extends OpMode {
     private double firingRPM = 3300;
 
     private double distance = 0;
+    private double startOffset = 20;
 
-    private final Pose startPose = new Pose(20, 130, Math.toRadians(155)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(60, 84, Math.toRadians(155)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose grab1StartPose = new Pose(60, 84, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose grab1Pose = new Pose(10, 84, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose grab2StartPose = new Pose(60, 60, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose grab2Pose = new Pose(10, 60, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose startPose = new Pose(20 -startOffset, 130, Math.toRadians(155)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(60-startOffset, 84, Math.toRadians(155)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose grab1StartPose = new Pose(60-startOffset, 84, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose grab1Pose = new Pose(10-startOffset, 84, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose grab2StartPose = new Pose(60-startOffset, 60, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
+    private final Pose grab2Pose = new Pose(10-startOffset, 60, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
 
     ElapsedTime waitTimer = new ElapsedTime();
 
@@ -136,12 +137,7 @@ public class Auton5 extends OpMode {
                 }
 
                 spindexer.nudging(true);
-                waitTimer.reset();
-                while (waitTimer.seconds() < 0.3) { }
-
                 spindexer.nudging(false);
-                waitTimer.reset();
-                while (waitTimer.seconds() < 0.2) { } // scuffed version of sleep LOL
             }
             spindexer.BallKD(false);
         }

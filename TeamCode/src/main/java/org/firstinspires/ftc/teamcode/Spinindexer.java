@@ -75,6 +75,7 @@ public class Spinindexer {
         }
         nudger.setPosition(nudgyPosition);
     }
+
     public boolean isItDown() {
         if (sinceMadeDown.milliseconds() > nudgerTime && Math.abs(0.05 - nudger.getPosition()) < 0.01) {
             return true;
