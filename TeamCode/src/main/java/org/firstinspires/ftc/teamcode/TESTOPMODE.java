@@ -252,6 +252,7 @@ public class TESTOPMODE extends LinearOpMode{
             }
 
             if (spindexThird && canMove && canSwapMode) {
+                spinindexer.BallKD(true);
                 inputAngle += 120;
                 canMove = false;
             }
@@ -261,6 +262,7 @@ public class TESTOPMODE extends LinearOpMode{
             }
 
             if (spindexSixth && canSwapMode) {
+                spinindexer.BallKD(false);
                 inputAngle += 60;
                 intakeAligned = !intakeAligned;
                 canSwapMode = false;
