@@ -37,7 +37,7 @@ public class Spinindexer {
         colorSensor = hwMap.get(ColorSensor.class, "colorSensor");
         spinner.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         spinner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        spinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        spinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public int colorDetected() { // 1 = green, 2 = purple
@@ -106,11 +106,11 @@ public class Spinindexer {
         double error = currentAngle - targetAngle;
         double derivative;
 
-//        if (withinRange(targetAngle))
-//        {
-//            spinner.setPower(0);
-//            return;
-//        }
+        if (Math.abs(currentAngle - targetAngle) < 10)
+        {
+            spinner.setPower(0);
+            return;
+        }
 
         if (PIDTimer.seconds() > 0) {
             derivative = (error - lastError)/PIDTimer.seconds();
