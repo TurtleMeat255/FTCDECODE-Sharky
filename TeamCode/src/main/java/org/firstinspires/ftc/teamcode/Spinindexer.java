@@ -150,7 +150,7 @@ public class Spinindexer {
     {
         if (input)
         {
-            kd = 0.001;
+            kd = 0.00005;
         }
         else
         {
