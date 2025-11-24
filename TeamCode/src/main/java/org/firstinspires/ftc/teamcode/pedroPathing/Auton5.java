@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.pedroPathing; // make sure this aligns with class location
 
-import android.graphics.Color;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -12,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.AprilTagLimeLight;
 import org.firstinspires.ftc.teamcode.ColorSensor;
 import org.firstinspires.ftc.teamcode.IntakeCode;
 import org.firstinspires.ftc.teamcode.Shooter;
@@ -25,6 +24,8 @@ public class Auton5 extends OpMode {
     IntakeCode intake = new IntakeCode();
     ColorSensor colorSensor = new ColorSensor();
 
+    AprilTagLimeLight limelight = new AprilTagLimeLight();
+
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
@@ -34,7 +35,7 @@ public class Auton5 extends OpMode {
     private Path scorePreload;
     private PathChain prepareGrab1, grab1, score2, prepareGrab2, grab2, score3;
 
-    int motif = 21;
+    int motif = 24;
     /*
     21 = gpp
     22 = pgp
@@ -50,12 +51,18 @@ public class Auton5 extends OpMode {
 
     public double inputAngle = 0;
 
+    private double firingRPM = 3300;
+
+    private double distance = 0;
+
     private final Pose startPose = new Pose(20, 130, Math.toRadians(155)); // Start Pose of our robot.
     private final Pose scorePose = new Pose(60, 84, Math.toRadians(155)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose grab1StartPose = new Pose(60, 84, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose grab1Pose = new Pose(10, 84, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose grab2StartPose = new Pose(60, 60, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
     private final Pose grab2Pose = new Pose(10, 60, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+
+    ElapsedTime waitTimer = new ElapsedTime();
 
     public void buildPaths() {
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
@@ -105,6 +112,39 @@ public class Auton5 extends OpMode {
         ticker = 0;
         shooter.FireAtRPM(2000);
         ShootBall(ColorSensor.DetectedColor.PURPLE,2000);
+    }
+
+    private void RapidFire()
+    {
+        if (spindexer.withinRange(inputAngle))
+        {
+            spindexer.RapidFiring(true);
+            spindexer.BallKD(true);
+            for (int i = 0; i < 3; i ++)
+            {
+                if (i > 0)
+                {
+                    inputAngle += 120;
+                }
+                while (!shooter.RPMCorrect(firingRPM) || !spindexer.withinRange(inputAngle))
+                {
+                    shooter.SetShooterRPM(firingRPM);
+                    spindexer.PID(inputAngle);
+
+                    firingRPM = 3300;
+                    shooter.SetHoodPosition(0.8);
+                }
+
+                spindexer.nudging(true);
+                waitTimer.reset();
+                while (waitTimer.seconds() < 0.3) { }
+
+                spindexer.nudging(false);
+                waitTimer.reset();
+                while (waitTimer.seconds() < 0.2) { } // scuffed version of sleep LOL
+            }
+            spindexer.BallKD(false);
+        }
     }
 
     public void ShootBall(ColorSensor.DetectedColor color, double rpm)
@@ -166,6 +206,8 @@ public class Auton5 extends OpMode {
                 ShootPurple();
                 ShootGreen();
                 break;
+            case 24:
+                RapidFire();
             default: // error handling :(
                 break;
         }
@@ -279,6 +321,7 @@ public class Auton5 extends OpMode {
         shooter.init(hardwareMap);
         intake.init(hardwareMap);
         colorSensor.init(hardwareMap);
+        limelight.init(hardwareMap);
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
