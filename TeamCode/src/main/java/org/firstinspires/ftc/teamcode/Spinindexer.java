@@ -15,7 +15,7 @@ public class Spinindexer {
     private double currentAngle = 360 * currentTicks/145.6;
     private double kp = 0.007; // 0.015
     private final double ki = 0;
-    private final double kd = 0; // 0.001
+    private double kd = 0; // 0.001
     private double lastError = 0;
     private double integralSum = 0;
     private static double nudgyPosition = 0.05;
@@ -146,15 +146,15 @@ public class Spinindexer {
         }
     }
 
-    public void BallKP(boolean input)
+    public void BallKD(boolean input)
     {
         if (input)
         {
-            kp = 0.002;
+            kd = 0.001;
         }
         else
         {
-            kp = 0.007;
+            kd = 0;
         }
     }
 
