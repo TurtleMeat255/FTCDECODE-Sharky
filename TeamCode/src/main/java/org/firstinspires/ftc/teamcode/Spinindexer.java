@@ -138,7 +138,7 @@ public class Spinindexer {
     {
         if (input)
         {
-            spindexerSpeed = 0.8;
+            spindexerSpeed = 1;
         }
         else
         {
