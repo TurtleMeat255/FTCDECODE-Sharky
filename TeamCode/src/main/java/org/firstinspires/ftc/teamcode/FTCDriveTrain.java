@@ -23,8 +23,8 @@ public class FTCDriveTrain
 
     SparkFunOTOS otos;
 
-    double kp = 0.2;
-    double kd = 0.01;
+    double kp = 0.025;
+    double kd = 0;
     ElapsedTime dt = new ElapsedTime();
     double lastError = 0;
     double errorCrunchConstant = 3;
@@ -46,6 +46,7 @@ public class FTCDriveTrain
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         otos = hwMap.get(SparkFunOTOS.class, "otos");
+        otos.setOffset(new SparkFunOTOS.Pose2D(1.5,-7,Math.PI));
         otos.calibrateImu();
     }
 
@@ -215,7 +216,7 @@ public class FTCDriveTrain
         double blPower = 0;
         double brPower = 0;
 
-        rotation *= -1;
+//        rotation *= -1;
 
         flPower = power * cos/maxSinCos+rotation;
         frPower = power * sin/maxSinCos-rotation;
@@ -241,5 +242,10 @@ public class FTCDriveTrain
             backLeftMotor.setPower(blPower * moveSpeed);
             backRightMotor.setPower(brPower * moveSpeed);
         }
+    }
+
+    public double GetRotation()
+    {
+        return otos.getPosition().h;
     }
 }

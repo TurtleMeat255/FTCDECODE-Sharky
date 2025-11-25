@@ -59,6 +59,8 @@ public class TESTOPMODE extends LinearOpMode{
     boolean autoTargeting = false;
     boolean rapidFiring = false;
 
+    boolean isFieldCentric = true;
+
     @Override
     public void runOpMode() {
         drivetrain.init(hardwareMap);
@@ -97,8 +99,6 @@ public class TESTOPMODE extends LinearOpMode{
 
             boolean resetButton = gamepad1.dpad_up;
 
-            boolean reverseIntakeFront = gamepad1.b;
-
             // Gamepad 2
 
                 //Spindexer
@@ -130,6 +130,8 @@ public class TESTOPMODE extends LinearOpMode{
             double intakePressed = gamepad2.right_trigger;
             double shooterPressed = gamepad2.left_trigger;
 
+            boolean reverseIntakeFront = gamepad2.right_bumper;
+
                 // Limelight
 
             double distance = limelight.GetDistance();
@@ -144,7 +146,19 @@ public class TESTOPMODE extends LinearOpMode{
             }
             else
             {
-                drivetrain.FieldOrientedTranslate(xPos,yPos,rot,resetButton);
+                if (isFieldCentric)
+                {
+                    drivetrain.FieldOrientedTranslate(xPos,yPos,rot,resetButton);
+                }
+                else
+                {
+                    drivetrain.Translate(xPos,yPos,rot,resetButton);
+                }
+            }
+
+            if (gamepad2.y)
+            {
+                isFieldCentric = false;
             }
 
             if (raiseNudger)
@@ -426,6 +440,7 @@ public class TESTOPMODE extends LinearOpMode{
             telemetry.addData("distance", limelight.GetDistance());
             telemetry.addData("GetPositionalCorrectness", spinindexer.GetPositionalCorrectness());
             telemetry.addData("GetKP", spinindexer.GetKP());
+            telemetry.addData("Rotation", drivetrain.GetRotation());
             telemetry.update();
         }
     }

@@ -19,12 +19,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 // bot weight - 27.6 lb
+
+// 16.5 vs 17.25
+// 1.25 vs 7 1/8
 public class Constants {
     public static OTOSConstants localizerConstants = new OTOSConstants()
             .hardwareMapName("otos")
             .linearUnit(DistanceUnit.INCH)
             .angleUnit(AngleUnit.RADIANS)
-            .offset(new SparkFunOTOS.Pose2D(0,0,3 * Math.PI/2))
+            .offset(new SparkFunOTOS.Pose2D(1.5,-7,3 * Math.PI/2))
             .linearScalar(1.0431)
             .angularScalar(0.9983);
 
