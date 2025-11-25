@@ -34,8 +34,11 @@ public class TESTOPMODE extends LinearOpMode{
     boolean pushUp; // This will be set by your logic
     boolean pushDown;
 
-    boolean canMove = true;
-    boolean canSwapMode = true;
+    boolean canMoveR = true;
+    boolean canSwapModeR = true;
+
+    boolean canMoveL = true;
+    boolean canSwapModeL = true;
     boolean swapping = false;
     double servoPos = 0;
 
@@ -92,7 +95,7 @@ public class TESTOPMODE extends LinearOpMode{
 
             boolean reverseIntakeShooter = gamepad1.dpad_left;
 
-            boolean resetButton = gamepad1.a;
+            boolean resetButton = gamepad1.dpad_up;
 
             boolean reverseIntakeFront = gamepad1.b;
 
@@ -137,13 +140,12 @@ public class TESTOPMODE extends LinearOpMode{
 
             if (autoTargeting)
             {
-                drivetrain.RobotCentricAlign(xPos,yPos,limelight.GetTX());
+                drivetrain.FieldCentricAlign(xPos,yPos,limelight.GetTX());
             }
             else
             {
-                drivetrain.RobotCentric(xPos,yPos,rot);
+                drivetrain.FieldOrientedTranslate(xPos,yPos,rot,resetButton);
             }
-
 
             if (raiseNudger)
             {
@@ -254,46 +256,46 @@ public class TESTOPMODE extends LinearOpMode{
                 inputAngle += spindexerManual/Math.abs(spindexerManual) * 120 * dt.seconds();
             }
 
-            if (spindexThirdRight && canMove && canSwapMode) {
+            if (spindexThirdRight && canMoveR && canSwapModeR) {
                 spinindexer.BallKD(true);
                 inputAngle += 120;
-                canMove = false;
+                canMoveR = false;
             }
             else if (!spindexThirdRight)
             {
-                canMove = true;
+                canMoveR = true;
             }
 
-            if (spindexSixthRight && canSwapMode) {
+            if (spindexSixthRight && canSwapModeR) {
                 spinindexer.BallKD(false);
                 inputAngle += 60;
                 intakeAligned = !intakeAligned;
-                canSwapMode = false;
+                canSwapModeR = false;
             }
             else if (!spindexSixthRight)
             {
-                canSwapMode = true;
+                canSwapModeR = true;
             }
 
-            if (spindexThirdLeft && canMove && canSwapMode) {
+            if (spindexThirdLeft && canMoveL && canSwapModeL) {
                 spinindexer.BallKD(true);
                 inputAngle -= 120;
-                canMove = false;
+                canMoveL = false;
             }
             else if (!spindexThirdLeft)
             {
-                canMove = true;
+                canMoveL = true;
             }
 
-            if (spindexSixthLeft && canSwapMode) {
+            if (spindexSixthLeft && canSwapModeL) {
                 spinindexer.BallKD(false);
                 inputAngle -= 60;
                 intakeAligned = !intakeAligned;
-                canSwapMode = false;
+                canSwapModeL = false;
             }
             else if (!spindexSixthLeft)
             {
-                canSwapMode = true;
+                canSwapModeL = true;
             }
 
             if (!coloringRn && spinindexer.isItDown()) {
@@ -338,6 +340,7 @@ public class TESTOPMODE extends LinearOpMode{
 
                 if (spinindexer.withinRange(inputAngle))
                 {
+                    drivetrain.SwapToBrakeMode(true);
                     drivetrain.RobotCentricAlign(0,0,0);
                     spinindexer.RapidFiring(true);
                     spinindexer.BallKD(true);
@@ -378,6 +381,7 @@ public class TESTOPMODE extends LinearOpMode{
                         sleep(200);
                     }
                     rapidFiring = false;
+                    drivetrain.SwapToBrakeMode(false);
                     spinindexer.BallKD(false);
                 }
             }

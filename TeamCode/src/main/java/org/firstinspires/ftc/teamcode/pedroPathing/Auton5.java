@@ -54,14 +54,14 @@ public class Auton5 extends OpMode {
     private double firingRPM = 3300;
 
     private double distance = 0;
-    private double startOffset = 20;
+    private double startOffset = 30;
 
-    private final Pose startPose = new Pose(20 -startOffset, 130, Math.toRadians(155)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(60-startOffset, 84, Math.toRadians(155)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose grab1StartPose = new Pose(60-startOffset, 84, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose grab1Pose = new Pose(10-startOffset, 84, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose grab2StartPose = new Pose(60-startOffset, 60, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose grab2Pose = new Pose(10-startOffset, 60, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose startPose = new Pose(130, 20, Math.toRadians(155)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(84, 60, Math.toRadians(155)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose grab1StartPose = new Pose(84, 60, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose grab1Pose = new Pose(84, 10, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose grab2StartPose = new Pose(60, 60, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
+    private final Pose grab2Pose = new Pose(60, 10, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
 
     ElapsedTime waitTimer = new ElapsedTime();
 
@@ -136,8 +136,16 @@ public class Auton5 extends OpMode {
                     shooter.SetHoodPosition(0.8);
                 }
 
-                spindexer.nudging(true);
-                spindexer.nudging(false);
+                double time_start = System.currentTimeMillis();
+                while (System.currentTimeMillis() - time_start <= 0.3)
+                {
+                    spindexer.nudging(true);
+                }
+                time_start = System.currentTimeMillis();
+                while (System.currentTimeMillis() - time_start <= 0.2)
+                {
+                    spindexer.nudging(false);
+                }
             }
             spindexer.BallKD(false);
         }
