@@ -45,7 +45,7 @@ public class FTCDriveTrain
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        otos = hwMap.get(SparkFunOTOS.class, "sensor_otos");
+        otos = hwMap.get(SparkFunOTOS.class, "otos");
         otos.calibrateImu();
     }
 
