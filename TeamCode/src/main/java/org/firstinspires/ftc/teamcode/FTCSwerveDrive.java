@@ -27,9 +27,21 @@ public class FTCSwerveDrive {
     double current_angle_rl = 0.0;
     double current_angle_rr = 0.0;
 
-    double kP = 0;
-    double kI = 0;
-    double kD = 0;
+    double FRkP = 0;
+    double FRkI = 0;
+    double FRkD = 0;
+
+    double FLkP = 0;
+    double FLkI = 0;
+    double FLkD = 0;
+
+    double RLkP = 0;
+    double RLkI = 0;
+    double RLkD = 0;
+
+    double RRkP = 0;
+    double RRkI = 0;
+    double RRkD = 0;
 
 
     public void init(HardwareMap hwMap) {
@@ -76,9 +88,20 @@ public class FTCSwerveDrive {
 
         PIDTimer.reset();
 
+        double FRpower = (FRkP * FRError) + (FRki * FRIntegralSum) + (FRkd * FRDerivative);
+        double FLpower = (FLkP * FLError) + (FLki * FLIntegralSum) + (FLkd * FLDerivative);
+        double RLpower = (RLkP * RLError) + (RLki * RLIntegralSum) + (RLkd * RLDerivative);
+        double RRpower = (RRkP * RRError) + (RRki * RRIntegralSum) + (RRkd * RRDerivative);
 
+        FRpower = Math.max(-1, Math.min(1, FRpower));
+        FLpower = Math.max(-1, Math.min(1, FLpower));
+        RLpower = Math.max(-1, Math.min(1, RLpower));
+        RRpower = Math.max(-1, Math.min(1, RRpower));
 
-    } */
+        return FRpower, FLpower, RLpower, RRpower;
+    }
+
+    */
 
     public void swerveDrive(double y_cmd_field, double x_cmd_field, double turn_cmd, boolean reset) {
 

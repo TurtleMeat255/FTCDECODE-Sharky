@@ -234,8 +234,8 @@ public class TESTOPMODE extends LinearOpMode{
                 }
                 else
                 {
-                    firingRPM = 3300;
-                    shooter.SetHoodPosition(0.8);
+                    firingRPM = 3000;
+                    shooter.SetHoodPosition(0.45);
                 }
             }
             else
@@ -386,20 +386,25 @@ public class TESTOPMODE extends LinearOpMode{
 
                             if (autoShoot)
                             {
-                                if (distance > 66)
+                                if (distance >= 66)
                                 {
                                     firingRPM = 3300;
                                     shooter.SetHoodPosition(0.8);
                                 }
-                                else if (distance > 45)
+                                else if (distance >= 45 && distance <= 65)
                                 {
                                     firingRPM = 3000;
                                     shooter.SetHoodPosition(0.45);
                                 }
-                                else
-                                {
+
+                                else if (distance <= 44) {
                                     firingRPM = 2700;
                                     shooter.SetHoodPosition(0.8);
+                                }
+                                else
+                                {
+                                    firingRPM = 3000;
+                                    shooter.SetHoodPosition(0.45);
                                 }
                             }
                         }
