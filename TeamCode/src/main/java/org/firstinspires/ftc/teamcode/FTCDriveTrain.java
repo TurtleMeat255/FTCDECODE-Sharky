@@ -124,7 +124,7 @@ public class FTCDriveTrain
         // The equivalent button is start on Xbox-style controllers.
         SparkFunOTOS.Pose2D currentPose = otos.getPosition();
 
-        currentPose.h = angleWrap(currentPose.h * Math.PI/180);
+        currentPose.h = -angleWrap(currentPose.h * Math.PI/180);
 
         if (reset) {
             otos.setPosition(new SparkFunOTOS.Pose2D(currentPose.x, currentPose.y, 0));

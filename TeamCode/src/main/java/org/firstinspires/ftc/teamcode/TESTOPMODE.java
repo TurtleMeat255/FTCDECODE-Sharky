@@ -95,9 +95,10 @@ public class TESTOPMODE extends LinearOpMode{
             boolean activateAutoTarget = gamepad1.dpad_right;
             boolean deactivateAutoTarget = gamepad1.dpad_down;
 
-            boolean reverseIntakeShooter = gamepad1.dpad_left;
+            boolean resetButton = gamepad1.options;
 
-            boolean resetButton = gamepad1.dpad_up;
+            boolean swapFieldCentric = gamepad1.dpad_left;
+            boolean swapRobotCentric = gamepad1.dpad_up;
 
             // Gamepad 2
 
@@ -112,8 +113,8 @@ public class TESTOPMODE extends LinearOpMode{
 
                 // Shooter
 
-            boolean activateAutoShoot = gamepad2.dpad_right;
-            boolean activateManualShoot = gamepad2.dpad_down;
+            boolean activateAutoShoot = gamepad2.options;
+            boolean activateManualShoot = gamepad2.start;
 
             // You will also need these for the color selection logic
             boolean shootAPurple = gamepad2.x;
@@ -124,6 +125,8 @@ public class TESTOPMODE extends LinearOpMode{
 
             boolean hoodUp = gamepad2.right_bumper;
             boolean hoodDown = gamepad2.left_bumper;
+
+            boolean reverseIntakeShooter = gamepad2.left_bumper;
 
                 // Intake
 
@@ -156,7 +159,11 @@ public class TESTOPMODE extends LinearOpMode{
                 }
             }
 
-            if (gamepad2.y)
+            if (swapFieldCentric)
+            {
+                isFieldCentric = true;
+            }
+            else if (swapRobotCentric)
             {
                 isFieldCentric = false;
             }
