@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class FTCDriveTrain
 {
-    double moveSpeed = 1;
+    double moveSpeed = 1.0;
     DcMotor frontLeftMotor;
     DcMotor backLeftMotor;
     DcMotor frontRightMotor;
