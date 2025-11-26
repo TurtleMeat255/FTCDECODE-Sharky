@@ -27,6 +27,11 @@ public class FTCSwerveDrive {
     double current_angle_rl = 0.0;
     double current_angle_rr = 0.0;
 
+    double kP = 0;
+    double kI = 0;
+    double kD = 0;
+
+
     public void init(HardwareMap hwMap) {
         frontLeftMotor  = hwMap.get(DcMotorEx.class, "frontLeftMotor");
         frontLeftServo  = hwMap.get(Servo.class,     "frontLeftServo");
@@ -40,10 +45,40 @@ public class FTCSwerveDrive {
         backLeftMotor   = hwMap.get(DcMotorEx.class, "backLeftMotor");
         backLeftServo   = hwMap.get(Servo.class,     "backLeftServo");
 
-        otos = hwMap.get(SparkFunOTOS.class, "sensor_otos");
+        otos = hwMap.get(SparkFunOTOS.class, "otos");
 
         otos.calibrateImu();
     }
+
+    /*
+
+    public void PID(double FRtargetAngle, double FLtargetAngle, double RLtargetAngle, double RRtargetAngle) {
+        double FRError = FRtargetAngle -  FR Axon servo angle
+        double FLError = FLtargetAngle -  FL axon servo angle
+        double RLError = RLtargetAngle -  RL axon servo angle
+        double RRError = RRtargetAngle -  RR axon servo angle
+
+        double FRDerivative = (dt > 0) ? (FRError - lastFRError) / dt : 0;
+        double FLDerivative = (dt > 0) ? (FLError - lastFLError) / dt : 0;
+        double RLDerivative = (dt > 0) ? (RLError - lastRLError) / dt : 0;
+        double RRDerivative =  (dt > 0) ? (RRError - lastRRError) / dt : 0;
+
+
+        FRIntegralSum += FRError * dt;
+        FLIntegralSum += FLError * dt;
+        RLIntegralSum += RLError * dt;
+        RRIntegralSum += RRError * dt;
+
+        lastFRError = FRError;
+        lastFLError = FLError;
+        lastRLError = RLError;
+        lastRRError = RRError;
+
+        PIDTimer.reset();
+
+
+
+    } */
 
     public void swerveDrive(double y_cmd_field, double x_cmd_field, double turn_cmd, boolean reset) {
 
@@ -57,9 +92,10 @@ public class FTCSwerveDrive {
         double heading_rad = currentPose.h;
 
 
-        // Correct field→robot transformation
-        double x_cmd_robot = x_cmd_field * Math.cos(heading_rad) - y_cmd_field * Math.sin(heading_rad);
-        double y_cmd_robot = x_cmd_field * Math.sin(heading_rad) + y_cmd_field * Math.cos(heading_rad);
+        // Field-centric
+        double x_cmd_robot = x_cmd_field * Math.cos(heading_rad) + y_cmd_field * Math.sin(heading_rad);
+        double y_cmd_robot = -x_cmd_field * Math.sin(heading_rad) + y_cmd_field * Math.cos(heading_rad);
+
 
         double y_fr = y_cmd_robot - turn_cmd * L;
         double x_fr = x_cmd_robot + turn_cmd * W;

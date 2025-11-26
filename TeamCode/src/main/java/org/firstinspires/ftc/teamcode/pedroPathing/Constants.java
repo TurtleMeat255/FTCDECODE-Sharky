@@ -30,6 +30,7 @@ public class Constants {
             .offset(new SparkFunOTOS.Pose2D(1.5,-7,3 * Math.PI/2))
             .linearScalar(1.0431)
             .angularScalar(0.9983);
+//            .offset(); Offset for the Odometry sensor and the center of the bot.
 
 
     public static FollowerConstants followerConstants = new FollowerConstants()
