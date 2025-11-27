@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class FTCSwerveDrive {
 
@@ -12,144 +14,102 @@ public class FTCSwerveDrive {
     DcMotorEx backLeftMotor;
     DcMotorEx frontRightMotor;
     DcMotorEx backRightMotor;
-    Servo frontLeftServo;
-    Servo backLeftServo;
-    Servo frontRightServo;
-    Servo backRightServo;
+    CRServo frontLeftServo;
+    CRServo backLeftServo;
+    CRServo frontRightServo;
+    CRServo backRightServo;
 
     SparkFunOTOS otos;
+
+    AnalogInput frontLeftAnalog;
+    AnalogInput backLeftAnalog;
+    AnalogInput frontRightAnalog;
+    AnalogInput backRightAnalog;
+
+    // --- PID Controller Instances ---
+    PIDController frPID;
+    PIDController flPID;
+    PIDController rlPID;
+    PIDController rrPID;
 
     final double L = 8.0;
     final double W = 8.0;
 
-    double current_angle_fr = 0.0;
-    double current_angle_fl = 0.0;
-    double current_angle_rl = 0.0;
-    double current_angle_rr = 0.0;
+    double FRkP = 0.03;
+    double FRkI = 0.0;
+    double FRkD = 0.001;
 
-    double FRkP = 0;
-    double FRkI = 0;
-    double FRkD = 0;
+    double FLkP = 0.03;
+    double FLkI = 0.0;
+    double FLkD = 0.001;
 
-    double FLkP = 0;
-    double FLkI = 0;
-    double FLkD = 0;
+    double RLkP = 0.03;
+    double RLkI = 0.0;
+    double RLkD = 0.001;
 
-    double RLkP = 0;
-    double RLkI = 0;
-    double RLkD = 0;
-
-    double RRkP = 0;
-    double RRkI = 0;
-    double RRkD = 0;
+    double RRkP = 0.03;
+    double RRkI = 0.0;
+    double RRkD = 0.001;
 
 
     public void init(HardwareMap hwMap) {
+        // --- Hardware Mapping ---
         frontLeftMotor  = hwMap.get(DcMotorEx.class, "frontLeftMotor");
-        frontLeftServo  = hwMap.get(Servo.class,     "frontLeftServo");
+        frontLeftServo  = hwMap.get(CRServo.class,     "frontLeftServo");
+        frontLeftAnalog = hwMap.get(AnalogInput.class, "frontLeftAnalog");
 
         frontRightMotor = hwMap.get(DcMotorEx.class, "frontRightMotor");
-        frontRightServo = hwMap.get(Servo.class,     "frontRightServo");
+        frontRightServo = hwMap.get(CRServo.class,     "frontRightServo");
+        frontRightAnalog = hwMap.get(AnalogInput.class, "frontRightAnalog");
 
         backRightMotor  = hwMap.get(DcMotorEx.class, "backRightMotor");
-        backRightServo  = hwMap.get(Servo.class,     "backRightServo");
+        backRightServo  = hwMap.get(CRServo.class,     "backRightServo");
+        backRightAnalog = hwMap.get(AnalogInput.class, "backRightAnalog");
 
         backLeftMotor   = hwMap.get(DcMotorEx.class, "backLeftMotor");
-        backLeftServo   = hwMap.get(Servo.class,     "backLeftServo");
+        backLeftServo   = hwMap.get(CRServo.class,     "backLeftServo");
+        backLeftAnalog = hwMap.get(AnalogInput.class, "backLeftAnalog");
 
         otos = hwMap.get(SparkFunOTOS.class, "otos");
-
         otos.calibrateImu();
+
+        frPID = new PIDController(FRkP, FRkI, FRkD);
+        flPID = new PIDController(FLkP, FLkI, FLkD);
+        rlPID = new PIDController(RLkP, RLkI, RLkD);
+        rrPID = new PIDController(RRkP, RRkI, RRkD);
     }
-
-    /*
-
-    public void PID(double FRtargetAngle, double FLtargetAngle, double RLtargetAngle, double RRtargetAngle) {
-        double FRError = FRtargetAngle -  FR Axon servo angle
-        double FLError = FLtargetAngle -  FL axon servo angle
-        double RLError = RLtargetAngle -  RL axon servo angle
-        double RRError = RRtargetAngle -  RR axon servo angle
-
-        double FRDerivative = (dt > 0) ? (FRError - lastFRError) / dt : 0;
-        double FLDerivative = (dt > 0) ? (FLError - lastFLError) / dt : 0;
-        double RLDerivative = (dt > 0) ? (RLError - lastRLError) / dt : 0;
-        double RRDerivative =  (dt > 0) ? (RRError - lastRRError) / dt : 0;
-
-
-        FRIntegralSum += FRError * dt;
-        FLIntegralSum += FLError * dt;
-        RLIntegralSum += RLError * dt;
-        RRIntegralSum += RRError * dt;
-
-        lastFRError = FRError;
-        lastFLError = FLError;
-        lastRLError = RLError;
-        lastRRError = RRError;
-
-        PIDTimer.reset();
-
-        double FRpower = (FRkP * FRError) + (FRki * FRIntegralSum) + (FRkd * FRDerivative);
-        double FLpower = (FLkP * FLError) + (FLki * FLIntegralSum) + (FLkd * FLDerivative);
-        double RLpower = (RLkP * RLError) + (RLki * RLIntegralSum) + (RLkd * RLDerivative);
-        double RRpower = (RRkP * RRError) + (RRki * RRIntegralSum) + (RRkd * RRDerivative);
-
-        FRpower = Math.max(-1, Math.min(1, FRpower));
-        FLpower = Math.max(-1, Math.min(1, FLpower));
-        RLpower = Math.max(-1, Math.min(1, RLpower));
-        RRpower = Math.max(-1, Math.min(1, RRpower));
-
-        return FRpower, FLpower, RLpower, RRpower;
-    }
-
-    */
 
     public void swerveDrive(double y_cmd_field, double x_cmd_field, double turn_cmd, boolean reset) {
 
-        /*
-        y_cmd_field = the gamepad control for y-axis of bot. Up and down from the ctrl hub
-        x_cmd_field = the gamepad control for x-axis of bot. Left and right from the ctrl hub / strafe
-        turn_cmd = the gamepad control for turning of the bot.
-         */
-        // field centric
         SparkFunOTOS.Pose2D currentPose = otos.getPosition();
         double heading_rad = currentPose.h;
 
-
-        // Field-centric
+        // Field-centric conversion
         double x_cmd_robot = x_cmd_field * Math.cos(heading_rad) + y_cmd_field * Math.sin(heading_rad);
         double y_cmd_robot = -x_cmd_field * Math.sin(heading_rad) + y_cmd_field * Math.cos(heading_rad);
 
-
         double y_fr = y_cmd_robot - turn_cmd * L;
-        double x_fr = x_cmd_robot + turn_cmd * W;
-//
+        double x_fr = x_cmd_robot - turn_cmd * W;
         double y_fl = y_cmd_robot - turn_cmd * L;
-        double x_fl = x_cmd_robot - turn_cmd * W;
-
+        double x_fl = x_cmd_robot + turn_cmd * W;
         double y_rl = y_cmd_robot + turn_cmd * L;
-        double x_rl = x_cmd_robot - turn_cmd * W;
-
+        double x_rl = x_cmd_robot + turn_cmd * W;
         double y_rr = y_cmd_robot + turn_cmd * L;
-        double x_rr = x_cmd_robot + turn_cmd * W; // WHY ARE YOU SICK JACOB!! - my bad :(
+        double x_rr = x_cmd_robot - turn_cmd * W;
 
-        /*
-        Using some simple grade 9 METH!! We can do this trust me
-         */
+        // Calculate Speed and Target Angle
         double speed_fr = Math.hypot(x_fr, y_fr);
         double speed_fl = Math.hypot(x_fl, y_fl);
         double speed_rl = Math.hypot(x_rl, y_rl);
         double speed_rr = Math.hypot(x_rr, y_rr);
 
-        /*
-        Code use atan2(x, y) to make 0 degrees = forward
-        We use the METH.atan2 so we get the 180 OR -180 degrees for the servo. SHII
-         */
+        // atan2(x, y) makes 0 degrees = forward (Y-axis)
         double angle_fr_deg = Math.toDegrees(Math.atan2(x_fr, y_fr));
         double angle_fl_deg = Math.toDegrees(Math.atan2(x_fl, y_fl));
         double angle_rl_deg = Math.toDegrees(Math.atan2(x_rl, y_rl));
         double angle_rr_deg = Math.toDegrees(Math.atan2(x_rr, y_rr));
 
-        // Normalize speeds
+        // Normalize speeds to ensure maximum speed is 1.0
         double max = Math.max(
                 Math.max(speed_fr, speed_fl),
                 Math.max(speed_rl, speed_rr)
@@ -162,80 +122,127 @@ public class FTCSwerveDrive {
             speed_rr /= max;
         }
 
-        // Compute angle errors
-        double angle_error_fr = normalizeAngle(angle_fr_deg - current_angle_fr);
-        double angle_error_fl = normalizeAngle(angle_fl_deg - current_angle_fl);
-        double angle_error_rl = normalizeAngle(angle_rl_deg - current_angle_rl);
-        double angle_error_rr = normalizeAngle(angle_rr_deg - current_angle_rr);
+        // --- 90-Degree Optimization & PID Control ---
 
-        // *** 60-degree flip optimization (YOUR REQUEST) ***
-        if (Math.abs(angle_error_fr) > 60.0) {
-            angle_fr_deg += (angle_error_fr > 0) ? -180.0 : 180.0;
-            speed_fr *= -1.0;
-        }
+        // Get current angles from sensors
+        double actual_angle_fr = getAngle(frontRightAnalog);
+        double actual_angle_fl = getAngle(frontLeftAnalog);
+        double actual_angle_rl = getAngle(backLeftAnalog);
+        double actual_angle_rr = getAngle(backRightAnalog);
 
-        if (Math.abs(angle_error_fl) > 60.0) {
-            angle_fl_deg += (angle_error_fl > 0) ? -180.0 : 180.0;
-            speed_fl *= -1.0;
-        }
+        // Apply optimization to target angle and drive speed
+        double[] optimized_fr = optimize(angle_fr_deg, speed_fr, actual_angle_fr);
+        double[] optimized_fl = optimize(angle_fl_deg, speed_fl, actual_angle_fl);
+        double[] optimized_rl = optimize(angle_rl_deg, speed_rl, actual_angle_rl);
+        double[] optimized_rr = optimize(angle_rr_deg, speed_rr, actual_angle_rr);
 
-        if (Math.abs(angle_error_rl) > 60.0) {
-            angle_rl_deg += (angle_error_rl > 0) ? -180.0 : 180.0;
-            speed_rl *= -1.0;
-        }
+        double target_fr = optimized_fr[0];
+        speed_fr = optimized_fr[1];
 
-        if (Math.abs(angle_error_rr) > 60.0) {
-            angle_rr_deg += (angle_error_rr > 0) ? -180.0 : 180.0;
-            speed_rr *= -1.0;
-        }
+        double target_fl = optimized_fl[0];
+        speed_fl = optimized_fl[1];
 
-        // Servo mapping for 0–300° rotation
-        double servo_pos_fr = mapAngleToServo(angle_fr_deg);
-        double servo_pos_fl = mapAngleToServo(angle_fl_deg);
-        double servo_pos_rl = mapAngleToServo(angle_rl_deg);
-        double servo_pos_rr = mapAngleToServo(angle_rr_deg);
+        double target_rl = optimized_rl[0];
+        speed_rl = optimized_rl[1];
 
-        // Apply angles + speeds
-        current_angle_fr = angle_fr_deg;
-        frontRightServo.setPosition(servo_pos_fr);
+        double target_rr = optimized_rr[0];
+        speed_rr = optimized_rr[1];
+
+        double steer_power_fr = frPID.calculate(target_fr, actual_angle_fr);
+        double steer_power_fl = flPID.calculate(target_fl, actual_angle_fl);
+        double steer_power_rl = rlPID.calculate(target_rl, actual_angle_rl);
+        double steer_power_rr = rrPID.calculate(target_rr, actual_angle_rr);
+
+        frontRightServo.setPower(steer_power_fr);
         frontRightMotor.setPower(speed_fr);
 
-        current_angle_fl = angle_fl_deg;
-        frontLeftServo.setPosition(servo_pos_fl);
+        frontLeftServo.setPower(steer_power_fl);
         frontLeftMotor.setPower(speed_fl);
 
-        current_angle_rl = angle_rl_deg;
-        backLeftServo.setPosition(servo_pos_rl);
+        backLeftServo.setPower(steer_power_rl);
         backLeftMotor.setPower(speed_rl);
 
-        current_angle_rr = angle_rr_deg;
-        backRightServo.setPosition(servo_pos_rr);
+        backRightServo.setPower(steer_power_rr);
         backRightMotor.setPower(speed_rr);
 
-        // Optional IMU reset
         if (reset) {
             otos.setPosition(new SparkFunOTOS.Pose2D(currentPose.x, currentPose.y, 0));
         }
     }
 
-    // [-180, 180]
+    // axon servo volt - degrees
+    private double getAngle(AnalogInput sensor) {
+        final double VOLT_TO_DEG = 360.0 / 3.3; // Assuming 3.3V reference
+        double rawAngle = sensor.getVoltage() * VOLT_TO_DEG;
+        return rawAngle % 360.0;
+    }
+
+    //angle flip kinda stuff
     private double normalizeAngle(double angle) {
         while (angle > 180.0) angle -= 360.0;
         while (angle < -180.0) angle += 360.0;
         return angle;
     }
 
-    // Map 0–360 wheel angle → 0–300° servo → 0.0–1.0
-    private double mapAngleToServo(double angleDeg) {
-        final double SERVO_RANGE = 300.0;
+    private double[] optimize(double targetAngle, double driveSpeed, double currentAngle) {
+        double error = targetAngle - currentAngle;
 
-        double positive = (angleDeg % 360 + 360) % 360;
+        error = normalizeAngle(error);
 
-        double pos = positive / SERVO_RANGE;
+        if (Math.abs(error) > 90.0) {
+            targetAngle = targetAngle - Math.signum(error) * 180.0;
 
-        if (pos < 0.0) pos = 0.0;
-        if (pos > 1.0) pos = 1.0;
+            driveSpeed *= -1.0;
 
-        return pos;
+            targetAngle = normalizeAngle(targetAngle);
+        }
+
+        return new double[]{targetAngle, driveSpeed};
+    }
+
+    public class PIDController {
+
+        private double kP, kI, kD;
+        private double integralSum = 0;
+        private double lastError = 0;
+        private ElapsedTime timer = new ElapsedTime();
+
+        public PIDController(double kP, double kI, double kD) {
+            this.kP = kP;
+            this.kI = kI;
+            this.kD = kD;
+            timer.reset();
+        }
+
+        public double calculate(double targetAngle, double currentAngle) {
+            // Find the shortest error path [-180, 180]
+            double error = targetAngle - currentAngle;
+            error = normalizeAngle(error);
+
+            double dt = timer.seconds();
+            timer.reset();
+
+            // P - Proportional Term
+            double pTerm = kP * error;
+
+            // I - Integral Term
+            integralSum += error * dt;
+            if (kI != 0) {
+                integralSum = Math.max(Math.min(integralSum, 0.5 / kI), -0.5 / kI);
+            }
+            double iTerm = kI * integralSum;
+
+            // D - Derivative Term
+            double derivative = (error - lastError) / (dt > 0 ? dt : 0.001); // Avoid division by zero
+            double dTerm = kD * derivative;
+
+            lastError = error;
+
+            double output = pTerm + iTerm + dTerm;
+
+            // Clamp output power
+            return Math.max(-1.0, Math.min(1.0, output));
+        }
+
     }
 }
