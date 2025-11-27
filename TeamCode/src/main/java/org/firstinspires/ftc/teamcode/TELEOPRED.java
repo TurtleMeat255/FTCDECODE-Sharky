@@ -1,13 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp
-public class TESTOPMODE extends LinearOpMode{
+public class TELEOPRED extends LinearOpMode{
     FTCDriveTrain drivetrain = new FTCDriveTrain();
     Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
@@ -60,7 +59,6 @@ public class TESTOPMODE extends LinearOpMode{
     boolean rapidFiring = false;
 
     boolean isFieldCentric = true;
-    boolean bringingDownArm = false;
 
     @Override
     public void runOpMode() {
@@ -146,7 +144,14 @@ public class TESTOPMODE extends LinearOpMode{
 
             if (autoTargeting)
             {
-                drivetrain.FieldCentricAlign(xPos,yPos,limelight.GetTX());
+                if (limelight.GetLimelightId() == 24)
+                {
+                    drivetrain.FieldCentricAlign(xPos,yPos,limelight.GetTX());
+                }
+                else
+                {
+                    drivetrain.FieldOrientedTranslate(xPos,yPos,rot,resetButton);
+                }
             }
             else
             {
@@ -338,11 +343,12 @@ public class TESTOPMODE extends LinearOpMode{
                 }
             }
 
-            if (coloringRn && !readyToShoot) {
+            if (coloringRn) {
                 if (spinindexer.withinRange(inputAngle)) {
                     if (colorSensor.GetDetectedColor() == colorIWant) {
                         readyToShoot = true;
                         coloringRn = false;
+                        pushUpTimer.reset();
                     } else {
                         pushUp = false;
                         ticker += 1;
@@ -431,20 +437,17 @@ public class TESTOPMODE extends LinearOpMode{
                 if (shooter.RPMCorrect(firingRPM))
                 {
                     pushUp = true;
-                    pushUpTimer.reset();
                 }
             }
 
-            if (pushUpTimer.seconds() > pushUpMaxTime/2 && pushUp)
+            if (pushUpTimer.seconds() > pushUpMaxTime/2)
             {
                 pushUp = false;
-                bringingDownArm = true;
             }
 
-            if (pushUpTimer.seconds() > pushUpMaxTime && bringingDownArm)
+            if (pushUpTimer.seconds() > pushUpMaxTime)
             {
                 readyToShoot = false;
-                bringingDownArm = false;
             }
 
             spinindexer.nudging(pushUp);

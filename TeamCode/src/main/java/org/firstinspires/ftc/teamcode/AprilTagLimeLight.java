@@ -72,8 +72,10 @@ public class AprilTagLimeLight {
         LLResult llresult = GetResult();
         List<LLResultTypes.FiducialResult> fiducial = llresult.getFiducialResults();
 
+        if (fiducial.isEmpty())
+        {
+            return 0;
+        }
         return fiducial.get(0).getFiducialId();
     }
-
-
 }

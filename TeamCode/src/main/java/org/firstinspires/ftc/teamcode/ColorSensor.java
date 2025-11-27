@@ -27,8 +27,8 @@ public class ColorSensor{
     HSVColor purpleMin = new HSVColor(190, 0.25, 0.25); // 272
     HSVColor purpleMax = new HSVColor(240, 1, 1); //360
 
-    HSVColor greenMin = new HSVColor(150, 0.25, 0.25); // 44
-    HSVColor greenMax = new HSVColor(210, 1, 1); //164
+    HSVColor greenMin = new HSVColor(135, 0.5, 0.25); // 44
+    HSVColor greenMax = new HSVColor(180, 1, 0.75); //164
 
     public enum DetectedColor
     {
@@ -82,7 +82,7 @@ public class ColorSensor{
         }
 
         if (hsvValues[0] > greenMin.hue && hsvValues[0] < greenMax.hue &&
-                hsvValues[1] > greenMin.saturation && hsvValues[2] > greenMin.value)
+                hsvValues[1] > greenMin.saturation && hsvValues[2] > greenMin.value && hsvValues[2] < greenMax.value)
         {
             return DetectedColor.GREEN;
         }
