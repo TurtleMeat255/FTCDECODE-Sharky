@@ -26,7 +26,7 @@ public class FTCSwerveDrive {
     AnalogInput frontRightAnalog;
     AnalogInput backRightAnalog;
 
-    // --- PID Controller Instances ---
+    //  PID Controller Instances
     PIDController frPID;
     PIDController flPID;
     PIDController rlPID;
@@ -84,7 +84,7 @@ public class FTCSwerveDrive {
         SparkFunOTOS.Pose2D currentPose = otos.getPosition();
         double heading_rad = currentPose.h;
 
-        // Field-centric conversion
+        // Field-centric conversion THIS IS NOT grade 9 METH!
         double x_cmd_robot = x_cmd_field * Math.cos(heading_rad) + y_cmd_field * Math.sin(heading_rad);
         double y_cmd_robot = -x_cmd_field * Math.sin(heading_rad) + y_cmd_field * Math.cos(heading_rad);
 
@@ -122,7 +122,7 @@ public class FTCSwerveDrive {
             speed_rr /= max;
         }
 
-        // --- 90-Degree Optimization & PID Control ---
+        //  90-Degree Optimization & PID Control
 
         // Get current angles from sensors
         double actual_angle_fr = getAngle(frontRightAnalog);
