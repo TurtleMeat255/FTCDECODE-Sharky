@@ -23,14 +23,27 @@ public class Auton5 extends OpMode {
     Shooter shooter = new Shooter();
     IntakeCode intake = new IntakeCode();
     ColorSensor colorSensor = new ColorSensor();
+    Spinindexer spinindexer = new Spinindexer();
 
     AprilTagLimeLight limelight = new AprilTagLimeLight();
 
 
     private Follower follower;
-    private Timer pathTimer, actionTimer, opmodeTimer;
+    private Timer pathTimer, actionTimer, opmodeTimer, shooterAccel, gobbleTimer, sinceLowered, sinceHighered;
+    private int pathState = -1;
+    private int timesShot = 0;
+    private int timesChecked = 0;
+    private int colorIWant = 0;
+    private int colorISee = 0;
+    private int noClueWhatToCallThis = 0;
+    int[] number = {3, 3, 2, 100};
+    private boolean intakeOn = true;
+    private boolean shooterOn = true;
+    private boolean hold = false;
+    private boolean pushed = false;
+    private double targetAngle = 0;
+    private double nudgePosition = 0;
 
-    private int pathState;
 
     private Path scorePreload;
     private PathChain prepareGrab1, grab1, score2, prepareGrab2, grab2, score3;
@@ -221,7 +234,18 @@ public class Auton5 extends OpMode {
     }
 
     public void autonomousPathUpdate() {
+        if (nudgePosition == 0.35 && sinceHighered.getElapsedTimeSeconds() > 0.5) {
+            nudgePosition = 0.05;
+            sinceLowered.resetTimer();
+            timesShot++;
+        }
+
         switch (pathState) {
+            case -1:
+                if (shooterAccel.getElapsedTimeSeconds() > 2) {
+                    setPathState(0);
+                }
+                break;
             case 0:
                 follower.followPath(scorePreload);
                 setPathState(1);
@@ -233,58 +257,94 @@ public class Auton5 extends OpMode {
                 }
                 break;
             case 2:
-                if(!follower.isBusy()) {
+                runWhileShooting();
+
+                if(!follower.isBusy() && timesShot == 3) {
                     follower.followPath(prepareGrab1,true);
                     setPathState(3);
+                    targetAngle += 60;
                 }
                 break;
             case 3:
+
                 if(!follower.isBusy()) {
                     follower.followPath(grab1,true);
                     setPathState(4);
+
                 }
                 break;
             case 4:
+                runToPickUp();
                 if(!follower.isBusy()) {
                     follower.followPath(score2,true);
                     setPathState(5);
+                    targetAngle += 60;
+                    timesShot = 0;
+                    timesChecked = 0;
+                    hold = false;
                 }
                 break;
             case 5:
+                runToDropOff();
                 if (!follower.isBusy())
                 {
                     scoringSequence(6);
+                    pushed = false;
+                    noClueWhatToCallThis = 0;
                 }
                 break;
             case 6:
-                if(!follower.isBusy()) {
+                runWhileShooting();
+
+                if(!follower.isBusy() && timesShot == 3) {
                     follower.followPath(prepareGrab2,true);
                     setPathState(7);
+                    targetAngle += 60;
                 }
                 break;
             case 7:
+
                 if(!follower.isBusy()) {
                     follower.followPath(grab2,true);
                     setPathState(8);
+
                 }
+
+
                 break;
             case 8:
+                runToPickUp();
+
                 if(!follower.isBusy()) {
                     follower.followPath(score3, true);
                     setPathState(9);
+                    targetAngle += 60;
+                    timesShot = 0;
+                    timesChecked = 0;
+                    hold = false;
                 }
                 break;
             case 9:
+                runToDropOff();
+
                 if (!follower.isBusy())
                 {
                     scoringSequence(10);
+                    pushed = false;
+                    noClueWhatToCallThis = 0;
                 }
             case 10:
-                if(!follower.isBusy()) {
-                    setPathState(-1);
+                runWhileShooting();
+
+                if(!follower.isBusy() && timesShot == 3) {
+                    setPathState(-100);
                 }
                 break;
         }
+        shooter.ActivateShooter(shooterOn, false);
+        intake.ActivateIntake(intakeOn, false);
+        spinindexer.PID(targetAngle);
+        spinindexer.nudge2(nudgePosition);
     }
 
     /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/
@@ -343,4 +403,62 @@ public class Auton5 extends OpMode {
     /** We do not use this because everything should automatically disable **/
     @Override
     public void stop() {}
+    public void runToPickUp() {
+        shooterOn = false;
+        if (gobbleTimer.getElapsedTimeSeconds() > 0.5 && nudgePosition == 0.05 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
+            targetAngle += 120;
+            gobbleTimer.resetTimer();
+        }
+    }
+    public void runWhileShooting() {
+        if (spinindexer.withinRange(targetAngle) && nudgePosition == 0.05 && sinceLowered.getElapsedTimeSeconds() > 0.5 && timesShot != 3) {
+            if (timesChecked >= number[timesShot]) {
+                if (pushed) {
+                    if (noClueWhatToCallThis == 2) {
+                        targetAngle -= 120;
+                    } else {
+                        targetAngle += 120;
+                    }
+                    pushed = false;
+                } else {
+                    nudgePosition = 0.35;
+                    sinceHighered.resetTimer();
+                    pushed = true;
+                }
+            } else {
+                if (colorISee == colorIWant) {
+                    nudgePosition = 0.35;
+                    sinceHighered.resetTimer();
+                    timesChecked = 0;
+                } else {
+                    timesChecked++;
+                    if (timesChecked >= number[timesShot]) {
+                    } else {
+                        if (noClueWhatToCallThis == 2) {
+                            targetAngle -= 120;
+                        } else {
+                            targetAngle += 120;
+                        }
+                        if (timesShot == 1) {
+                            noClueWhatToCallThis++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    public void runToDropOff() {
+        shooterOn = true;
+        /// //green
+        if (!hold) {
+            if (spinindexer.withinRange(targetAngle) && nudgePosition == 0.05 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
+                if (colorISee == colorIWant) {
+                    hold = true;
+                } else {
+                    timesChecked++;
+                    targetAngle += 120;
+                }
+            }
+        }
+    }
 }

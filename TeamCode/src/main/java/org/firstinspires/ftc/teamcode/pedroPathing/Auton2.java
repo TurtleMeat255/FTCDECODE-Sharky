@@ -283,7 +283,7 @@ public class Auton2 extends OpMode
                 }
             } else {
                 if (colorISee == colorIWant) {
-                    nudgePosition = 0.25;
+                    nudgePosition = 0.35;
                     sinceHighered.resetTimer();
                     timesChecked = 0;
                 } else {
