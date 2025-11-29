@@ -8,6 +8,7 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.AprilTagLimeLight;
@@ -26,6 +27,7 @@ public class Auton5 extends OpMode {
 
     AprilTagLimeLight limelight = new AprilTagLimeLight();
 
+    public Servo nudger;
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
@@ -33,7 +35,7 @@ public class Auton5 extends OpMode {
     private int pathState;
 
     private Path scorePreload;
-    private PathChain prepareGrab1, grab1, score2, prepareGrab2, grab2, score3;
+    private PathChain prepareGrab1, grab1, hold, score2, prepareGrab2, grab2, score3;
 
     int motif = 24;
     /*
@@ -56,14 +58,15 @@ public class Auton5 extends OpMode {
     private double distance = 0;
     private double startOffset = 30;
 
-    private final Pose startPose = new Pose(130, 20, Math.toRadians(155)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(84, 60, Math.toRadians(155)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose grab1StartPose = new Pose(84, 60, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose grab1Pose = new Pose(84, 10, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose grab2StartPose = new Pose(60, 60, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose grab2Pose = new Pose(60, 10, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose startPose = new Pose(24, 120, Math.toRadians(135)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(40, 96, Math.toRadians(125)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose grab1StartPose = new Pose(55, 76, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose grab1Pose = new Pose(22, 76, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose grab2StartPose = new Pose(55, 52, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
+    private final Pose grab2Pose = new Pose(12, 52, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
 
     ElapsedTime waitTimer = new ElapsedTime();
+    boolean canSwap = true;
 
     public void buildPaths() {
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
@@ -74,10 +77,14 @@ public class Auton5 extends OpMode {
                 .addPath(new BezierLine(scorePose, grab1StartPose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), grab1StartPose.getHeading())
                 .build();
+        hold = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose,scorePose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), grab1StartPose.getHeading())
+                .build();
         grab1 = follower.pathBuilder()
                 .addPath(new BezierLine(grab1StartPose, grab1Pose))
                 .setLinearHeadingInterpolation(grab1StartPose.getHeading(), grab1Pose.getHeading())
-                .setBrakingStart(1)
+                .setBrakingStart(0)
                 .build();
         score2 = follower.pathBuilder()
                 .addPath(new BezierLine(grab1Pose, scorePose))
@@ -90,7 +97,7 @@ public class Auton5 extends OpMode {
         grab2 = follower.pathBuilder()
                 .addPath(new BezierLine(grab2StartPose, grab2Pose))
                 .setLinearHeadingInterpolation(grab2StartPose.getHeading(), grab2Pose.getHeading())
-                .setBrakingStart(1)
+                .setBrakingStart(0)
                 .build();
         score3 = follower.pathBuilder()
                 .addPath(new BezierLine(grab2Pose, scorePose))
@@ -117,38 +124,41 @@ public class Auton5 extends OpMode {
 
     private void RapidFire()
     {
-        if (spindexer.withinRange(inputAngle))
+        while (!spindexer.withinRange(inputAngle))
         {
-            spindexer.RapidFiring(true);
-            spindexer.BallKD(true);
-            for (int i = 0; i < 3; i ++)
-            {
-                if (i > 0)
-                {
-                    inputAngle += 120;
-                }
-                while (!shooter.RPMCorrect(firingRPM) || !spindexer.withinRange(inputAngle))
-                {
-                    shooter.SetShooterRPM(firingRPM);
-                    spindexer.PID(inputAngle);
-
-                    firingRPM = 3300;
-                    shooter.SetHoodPosition(0.8);
-                }
-
-                double time_start = System.currentTimeMillis();
-                while (System.currentTimeMillis() - time_start <= 0.3)
-                {
-                    spindexer.nudging(true);
-                }
-                time_start = System.currentTimeMillis();
-                while (System.currentTimeMillis() - time_start <= 0.2)
-                {
-                    spindexer.nudging(false);
-                }
-            }
-            spindexer.BallKD(false);
+            spindexer.PID(inputAngle);
         }
+
+        spindexer.RapidFiring(true);
+        spindexer.BallKD(true);
+        for (int i = 0; i < 3; i ++)
+        {
+            if (i > 0)
+            {
+                inputAngle += 120;
+            }
+            while (!shooter.RPMCorrect(firingRPM) || !spindexer.withinRange(inputAngle))
+            {
+                shooter.SetShooterRPM(firingRPM);
+                spindexer.PID(inputAngle);
+
+                firingRPM = 2900;
+                shooter.SetHoodPosition(0.40);
+            }
+
+            pushUpTimer.reset();
+            while (pushUpTimer.seconds() < 0.3)
+            {
+                nudger.setPosition(0.65);
+            }
+
+            pushUpTimer.reset();
+            while (pushUpTimer.seconds() < 0.3)
+            {
+                nudger.setPosition(1);
+            }
+        }
+        spindexer.BallKD(false);
     }
 
     public void ShootBall(ColorSensor.DetectedColor color, double rpm)
@@ -223,34 +233,57 @@ public class Auton5 extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(scorePreload);
+                follower.followPath(scorePreload,true);
                 setPathState(1);
                 break;
             case 1:
                 if (!follower.isBusy())
                 {
+//                    follower.followPath(hold);
                     scoringSequence(2);
                 }
                 break;
             case 2:
                 if(!follower.isBusy()) {
+                    inputAngle += 60;
+                    while(!spindexer.withinRange(inputAngle))
+                    {
+                        spindexer.PID(inputAngle);
+                    }
                     follower.followPath(prepareGrab1,true);
                     setPathState(3);
+                    waitTimer.reset();
                 }
                 break;
             case 3:
                 if(!follower.isBusy()) {
+                    intake.ActivateIntake(false, true);
+
+                    inputAngle += 120;
+                    while(!spindexer.withinRange(inputAngle))
+                    {
+                        spindexer.PID(inputAngle);
+                    }
+                    waitTimer.reset();
+
                     follower.followPath(grab1,true);
                     setPathState(4);
                 }
                 break;
             case 4:
                 if(!follower.isBusy()) {
+                    inputAngle += 60;
+
+                    while(!spindexer.withinRange(inputAngle))
+                    {
+                        spindexer.PID(inputAngle);
+                    }
                     follower.followPath(score2,true);
                     setPathState(5);
                 }
                 break;
             case 5:
+//                setPathState(6);
                 if (!follower.isBusy())
                 {
                     scoringSequence(6);
@@ -258,23 +291,44 @@ public class Auton5 extends OpMode {
                 break;
             case 6:
                 if(!follower.isBusy()) {
+                    inputAngle += 60;
+                    while(!spindexer.withinRange(inputAngle))
+                    {
+                        spindexer.PID(inputAngle);
+                    }
                     follower.followPath(prepareGrab2,true);
                     setPathState(7);
+                    waitTimer.reset();
                 }
                 break;
             case 7:
                 if(!follower.isBusy()) {
+                    intake.ActivateIntake(false, true);
+
+                    inputAngle += 120;
+                    while(!spindexer.withinRange(inputAngle))
+                    {
+                        spindexer.PID(inputAngle);
+                    }
+                    waitTimer.reset();
+
                     follower.followPath(grab2,true);
                     setPathState(8);
                 }
                 break;
             case 8:
                 if(!follower.isBusy()) {
+                    inputAngle += 60;
+                    while(!spindexer.withinRange(inputAngle))
+                    {
+                        spindexer.PID(inputAngle);
+                    }
                     follower.followPath(score3, true);
                     setPathState(9);
                 }
                 break;
             case 9:
+//                setPathState(10);
                 if (!follower.isBusy())
                 {
                     scoringSequence(10);
@@ -307,6 +361,7 @@ public class Auton5 extends OpMode {
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("heading", follower.getPose().getHeading());
+        telemetry.addData("servo position", nudger.getPosition());
         telemetry.update();
     }
 
@@ -326,6 +381,7 @@ public class Auton5 extends OpMode {
         intake.init(hardwareMap);
         colorSensor.init(hardwareMap);
         limelight.init(hardwareMap);
+        nudger = hardwareMap.get(Servo.class, "nudger");
     }
 
     /** This method is called continuously after Init while waiting for "play". **/

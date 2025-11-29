@@ -27,7 +27,7 @@ public class Constants {
             .hardwareMapName("otos")
             .linearUnit(DistanceUnit.INCH)
             .angleUnit(AngleUnit.RADIANS)
-            .offset(new SparkFunOTOS.Pose2D(1.5,-7,3 * Math.PI/2))
+            .offset(new SparkFunOTOS.Pose2D(-7,-1.5,3 * Math.PI/2))
             .linearScalar(1.0431)
             .angularScalar(0.9983);
 //            .offset(); Offset for the Odometry sensor and the center of the bot.

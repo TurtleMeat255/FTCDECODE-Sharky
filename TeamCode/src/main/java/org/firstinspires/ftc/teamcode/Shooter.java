@@ -203,7 +203,7 @@ public class Shooter {
 
         double currentRPM = (shooter1.getCurrentPosition() / encoderResolution - lastEncoder) / dx;
 
-        double error = rpm-currentRPM;
+        double error = Math.abs(rpm)-currentRPM;
 
         double derivative = (error - lastRPMERR) / dx;
         double proportional = error;
@@ -225,7 +225,7 @@ public class Shooter {
             output = 1;
         }
 
-        SetPowerPID(output);
+        SetPowerPID(output * rpm/Math.abs(rpm));
 
         dt.reset();
     }
