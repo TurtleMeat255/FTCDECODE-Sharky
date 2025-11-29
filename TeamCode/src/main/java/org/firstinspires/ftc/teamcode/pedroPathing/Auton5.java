@@ -42,7 +42,7 @@ public class Auton5 extends OpMode {
     private boolean hold = false;
     private boolean pushed = false;
     private double targetAngle = 0;
-    private double nudgePosition = 0;
+    private double nudgePosition = 0.05;
 
 
     private Path scorePreload;
