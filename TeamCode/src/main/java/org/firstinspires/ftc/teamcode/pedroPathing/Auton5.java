@@ -259,7 +259,7 @@ public class Auton5 extends OpMode {
             case 2:
                 runWhileShooting();
 
-                if(!follower.isBusy() && timesShot == 3) {
+                if(!follower.isBusy() && timesShot == 3 && sinceLowered.getElapsedTimeSeconds()>0.5 && nudgePosition == 0.05) {
                     follower.followPath(prepareGrab1,true);
                     setPathState(3);
                     targetAngle += 60;
@@ -296,7 +296,7 @@ public class Auton5 extends OpMode {
             case 6:
                 runWhileShooting();
 
-                if(!follower.isBusy() && timesShot == 3) {
+                if(!follower.isBusy() && timesShot == 3 && sinceLowered.getElapsedTimeSeconds()>0.5 && nudgePosition == 0.05) {
                     follower.followPath(prepareGrab2,true);
                     setPathState(7);
                     targetAngle += 60;
@@ -336,7 +336,7 @@ public class Auton5 extends OpMode {
             case 10:
                 runWhileShooting();
 
-                if(!follower.isBusy() && timesShot == 3) {
+                if(!follower.isBusy() && timesShot == 3 && sinceLowered.getElapsedTimeSeconds()>0.5 && nudgePosition == 0.05) {
                     setPathState(-100);
                 }
                 break;
