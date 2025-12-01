@@ -50,7 +50,7 @@ public class AutoShooter {
     public void turnTurretBLUE() {
         double tx = limeLight.GetTX();
 
-        if (limeLight.GetLimelightId() == 20 && randomVariable) {
+        if (limeLight.GetLimelightId() == 20 && randomVariable) { // Lowkey not sure what this does for sorting APRILTAGLOL!!
             turretMotor.setPower(0);
             integralSum = 0;
             lastError = 0;
