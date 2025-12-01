@@ -72,7 +72,7 @@ public class Shooter {
     double lastRPMERR = 0;
 
     double kp = 1;
-    double kd = 0;
+    double kd = 0.01;
 
     final double COUNTS_PER_MOTOR_REV = 28.0;
     final double GEAR_REDUCTION = 1;

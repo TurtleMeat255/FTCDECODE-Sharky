@@ -44,6 +44,10 @@ public class Auton5 extends OpMode {
     private double targetAngle = 0;
     private double nudgePosition = 0.05;
 
+    private final ColorSensor.DetectedColor[] motif21 = {ColorSensor.DetectedColor.GREEN, ColorSensor.DetectedColor.PURPLE, ColorSensor.DetectedColor.PURPLE};
+    private final ColorSensor.DetectedColor[] motif22 = {ColorSensor.DetectedColor.PURPLE, ColorSensor.DetectedColor.GREEN, ColorSensor.DetectedColor.PURPLE};
+    private final ColorSensor.DetectedColor[] motif23 = {ColorSensor.DetectedColor.PURPLE, ColorSensor.DetectedColor.PURPLE, ColorSensor.DetectedColor.GREEN};
+
 
     private Path scorePreload;
     private PathChain prepareGrab1, grab1, score2, prepareGrab2, grab2, score3;
@@ -200,6 +204,22 @@ public class Auton5 extends OpMode {
             {
                 continuing = false;
             }
+        }
+    }
+    private ColorSensor.DetectedColor getTargetColor() {
+        if (timesShot < 0 || timesShot >= 3) {
+            return ColorSensor.DetectedColor.UNKNOWN;
+        }
+
+        switch (motif) {
+            case 21:
+                return motif21[timesShot];
+            case 22:
+                return motif22[timesShot];
+            case 23:
+                return motif23[timesShot];
+            default:
+                return ColorSensor.DetectedColor.UNKNOWN;
         }
     }
 
@@ -426,7 +446,7 @@ public class Auton5 extends OpMode {
                     pushed = true;
                 }
             } else {
-                if (colorISee == colorIWant) {
+                if (colorSensor.GetDetectedColor() == getTargetColor()) {
                     nudgePosition = 0.35;
                     sinceHighered.resetTimer();
                     timesChecked = 0;

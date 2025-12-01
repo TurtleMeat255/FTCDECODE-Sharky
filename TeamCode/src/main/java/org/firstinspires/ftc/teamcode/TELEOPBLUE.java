@@ -19,7 +19,9 @@ public class TELEOPBLUE extends LinearOpMode{
     DcMotor intake1 = null;
 
     ElapsedTime dt = new ElapsedTime();
+    ElapsedTime rumbleTimer = new ElapsedTime();
 
+    boolean isEndgame = false;
     public double inputAngle = 0;
     public boolean intakeAligned = false;
     boolean lastShooterLeft = false;
@@ -448,6 +450,13 @@ public class TELEOPBLUE extends LinearOpMode{
             if (pushUpTimer.seconds() > pushUpMaxTime)
             {
                 readyToShoot = false;
+            }
+
+            if (rumbleTimer.seconds() >= 100 && !isEndgame)
+            {
+                gamepad1.rumbleBlips(2);
+                gamepad2.rumbleBlips(2);
+                isEndgame = true;
             }
 
             spinindexer.nudging(pushUp);
