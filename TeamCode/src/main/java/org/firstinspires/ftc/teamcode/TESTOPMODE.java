@@ -20,6 +20,8 @@ public class TESTOPMODE extends LinearOpMode{
     DcMotor intake1 = null;
 
     ElapsedTime dt = new ElapsedTime();
+    ElapsedTime rumbleTimer = new ElapsedTime();
+    boolean isEndgame = false;
 
     public double inputAngle = 0;
     public boolean intakeAligned = false;
@@ -434,6 +436,14 @@ public class TESTOPMODE extends LinearOpMode{
                     pushUpTimer.reset();
                 }
             }
+            // controller shake
+
+            if (rumbleTimer.seconds() >= 100 && !isEndgame)
+            {
+                gamepad1.rumbleBlips(2);
+                gamepad2.rumbleBlips(2);
+                isEndgame = true;
+            }
 
             if (pushUpTimer.seconds() > pushUpMaxTime/2 && pushUp)
             {
@@ -458,7 +468,6 @@ public class TESTOPMODE extends LinearOpMode{
             telemetry.addData("current shooter actual rpm", shooter.GetShooterRPM());
             telemetry.addData("shooter at rpm", shooter.RPMCorrect(firingRPM));
             telemetry.addData("distance", limelight.GetDistance());
-            telemetry.addData("GetPositionalCorrectness", spinindexer.GetPositionalCorrectness());
             telemetry.addData("GetKP", spinindexer.GetKP());
             telemetry.addData("Rotation", drivetrain.GetRotation());
             telemetry.update();

@@ -12,8 +12,6 @@ public class IntakeCode {
 
 
     public void init(HardwareMap hwMap) {
-        // ✅ FIX 1: Assign to the class variable, don't declare a new one.
-        // The "this." prefix makes it clear you're using the class-level variable.
         intake1 = hwMap.get(DcMotor.class, "intake");
 
         // Set the motor direction. You might need to change this to REVERSE.

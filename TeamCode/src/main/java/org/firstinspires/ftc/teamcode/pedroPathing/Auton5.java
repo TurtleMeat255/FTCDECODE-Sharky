@@ -30,9 +30,21 @@ public class Auton5 extends OpMode {
     public Servo nudger;
 
     private Follower follower;
-    private Timer pathTimer, actionTimer, opmodeTimer;
+    private Timer pathTimer, actionTimer, opmodeTimer, shooterAccel, gobbleTimer, sinceLowered, sinceHighered;
 
-    private int pathState;
+    private int pathState = -1;
+    private int timesShot = 0;
+    private int timesChecked = 0;
+    private int colorIWant = 0;
+    private int colorISee = 0;
+    private int noClueWhatToCallThis = 0;
+    int[] number = {3, 3, 2, 100};
+    private boolean intakeOn = true;
+    private boolean shooterOn = true;
+    private boolean holding = false;
+    private boolean pushed = false;
+    private double targetAngle = 0;
+    private double nudgePosition = 0.05;
 
     private Path scorePreload;
     private PathChain prepareGrab1, grab1, hold, score2, prepareGrab2, grab2, score3;
@@ -67,6 +79,10 @@ public class Auton5 extends OpMode {
 
     ElapsedTime waitTimer = new ElapsedTime();
     boolean canSwap = true;
+
+    private final ColorSensor.DetectedColor[] motif21 = {ColorSensor.DetectedColor.GREEN, ColorSensor.DetectedColor.PURPLE, ColorSensor.DetectedColor.PURPLE};
+    private final ColorSensor.DetectedColor[] motif22 = {ColorSensor.DetectedColor.PURPLE, ColorSensor.DetectedColor.GREEN, ColorSensor.DetectedColor.PURPLE};
+    private final ColorSensor.DetectedColor[] motif23 = {ColorSensor.DetectedColor.PURPLE, ColorSensor.DetectedColor.PURPLE, ColorSensor.DetectedColor.GREEN};
 
     public void buildPaths() {
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
@@ -124,41 +140,38 @@ public class Auton5 extends OpMode {
 
     private void RapidFire()
     {
-        while (!spindexer.withinRange(inputAngle))
+        if (spindexer.withinRange(inputAngle))
         {
-            spindexer.PID(inputAngle);
+            spindexer.RapidFiring(true);
+            spindexer.BallKD(true);
+            for (int i = 0; i < 3; i ++)
+            {
+                if (i > 0)
+                {
+                    inputAngle += 120;
+                }
+                while (!shooter.RPMCorrect(firingRPM) || !spindexer.withinRange(inputAngle))
+                {
+                    shooter.SetShooterRPM(firingRPM);
+                    spindexer.PID(inputAngle);
+
+                    firingRPM = 3300;
+                    shooter.SetHoodPosition(0.8);
+                }
+
+                double time_start = System.currentTimeMillis();
+                while (System.currentTimeMillis() - time_start <= 0.3)
+                {
+                    spindexer.nudging(true);
+                }
+                time_start = System.currentTimeMillis();
+                while (System.currentTimeMillis() - time_start <= 0.2)
+                {
+                    spindexer.nudging(false);
+                }
+            }
+            spindexer.BallKD(false);
         }
-
-        spindexer.RapidFiring(true);
-        spindexer.BallKD(true);
-        for (int i = 0; i < 3; i ++)
-        {
-            if (i > 0)
-            {
-                inputAngle += 120;
-            }
-            while (!shooter.RPMCorrect(firingRPM) || !spindexer.withinRange(inputAngle))
-            {
-                shooter.SetShooterRPM(firingRPM);
-                spindexer.PID(inputAngle);
-
-                firingRPM = 2900;
-                shooter.SetHoodPosition(0.40);
-            }
-
-            pushUpTimer.reset();
-            while (pushUpTimer.seconds() < 0.3)
-            {
-                nudger.setPosition(0.65);
-            }
-
-            pushUpTimer.reset();
-            while (pushUpTimer.seconds() < 0.3)
-            {
-                nudger.setPosition(1);
-            }
-        }
-        spindexer.BallKD(false);
     }
 
     public void ShootBall(ColorSensor.DetectedColor color, double rpm)
@@ -197,6 +210,23 @@ public class Auton5 extends OpMode {
             {
                 continuing = false;
             }
+        }
+    }
+
+    private ColorSensor.DetectedColor getTargetColor() {
+        if (timesShot < 0 || timesShot >= 3) {
+            return ColorSensor.DetectedColor.UNKNOWN;
+        }
+
+        switch (motif) {
+            case 21:
+                return motif21[timesShot];
+            case 22:
+                return motif22[timesShot];
+            case 23:
+                return motif23[timesShot];
+            default:
+                return ColorSensor.DetectedColor.UNKNOWN;
         }
     }
 
@@ -381,7 +411,6 @@ public class Auton5 extends OpMode {
         intake.init(hardwareMap);
         colorSensor.init(hardwareMap);
         limelight.init(hardwareMap);
-        nudger = hardwareMap.get(Servo.class, "nudger");
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
@@ -399,4 +428,63 @@ public class Auton5 extends OpMode {
     /** We do not use this because everything should automatically disable **/
     @Override
     public void stop() {}
+
+    public void runToPickUp() {
+        shooterOn = false;
+        if (gobbleTimer.getElapsedTimeSeconds() > 0.5 && nudgePosition == 0.05 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
+            targetAngle += 120;
+            gobbleTimer.resetTimer();
+        }
+    }
+    public void runWhileShooting() {
+        if (spindexer.withinRange(targetAngle) && nudgePosition == 0.05 && sinceLowered.getElapsedTimeSeconds() > 0.5 && timesShot != 3) {
+            if (timesChecked >= number[timesShot]) {
+                if (pushed) {
+                    if (noClueWhatToCallThis == 2) {
+                        targetAngle -= 120;
+                    } else {
+                        targetAngle += 120;
+                    }
+                    pushed = false;
+                } else {
+                    nudgePosition = 0.35;
+                    sinceHighered.resetTimer();
+                    pushed = true;
+                }
+            } else {
+                if (colorSensor.GetDetectedColor() == getTargetColor()) {
+                    nudgePosition = 0.35;
+                    sinceHighered.resetTimer();
+                    timesChecked = 0;
+                } else {
+                    timesChecked++;
+                    if (timesChecked >= number[timesShot]) {
+                    } else {
+                        if (noClueWhatToCallThis == 2) {
+                            targetAngle -= 120;
+                        } else {
+                            targetAngle += 120;
+                        }
+                        if (timesShot == 1) {
+                            noClueWhatToCallThis++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    public void runToDropOff() {
+        shooterOn = true;
+        /// //green
+        if (!holding) {
+            if (spindexer.withinRange(targetAngle) && nudgePosition == 0.05 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
+                if (colorISee == colorIWant) {
+                    holding = true;
+                } else {
+                    timesChecked++;
+                    targetAngle += 120;
+                }
+            }
+        }
+    }
 }

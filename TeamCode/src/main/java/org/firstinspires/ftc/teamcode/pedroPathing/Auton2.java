@@ -9,6 +9,8 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.AprilTagLimeLight;
+import org.firstinspires.ftc.teamcode.ColorSensor;
 import org.firstinspires.ftc.teamcode.FTCDriveTrain;
 import org.firstinspires.ftc.teamcode.IntakeCode;
 import org.firstinspires.ftc.teamcode.Shooter;
@@ -20,6 +22,8 @@ public class Auton2 extends OpMode
     Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
     IntakeCode intake = new IntakeCode();
+    ColorSensor colorSensor = new ColorSensor();
+    AprilTagLimeLight limelight = new AprilTagLimeLight();
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer, shooterAccel, gobbleTimer, sinceLowered, sinceHighered;
@@ -113,41 +117,8 @@ public class Auton2 extends OpMode
             - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
             - Robot Position: "if(follower.getPose().getX() > 36) {}"
             */
-                if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5 && timesShot != 3) {
-                    if (timesChecked >= number[timesShot]) {
-                        if (pushed) {
-                            if (noClueWhatToCallThis == 2) {
-                                targetAngle -= 120;
-                            } else {
-                                targetAngle += 120;
-                            }
-                            pushed = false;
-                        } else {
-                            nudgePosition = 0.25;
-                            sinceHighered.resetTimer();
-                            pushed = true;
-                        }
-                    } else {
-                        if (colorISee == colorIWant) {
-                            nudgePosition = 0.25;
-                            sinceHighered.resetTimer();
-                            timesChecked = 0;
-                        } else {
-                            timesChecked++;
-                            if (timesChecked >= number[timesShot]) {
-                            } else {
-                                if (noClueWhatToCallThis == 2) {
-                                    targetAngle -= 120;
-                                } else {
-                                    targetAngle += 120;
-                                }
-                                if (timesShot == 1) {
-                                    noClueWhatToCallThis++;
-                                }
-                            }
-                        }
-                    }
-                }
+                runWhileShooting();
+
                 if(!follower.isBusy() && timesShot == 3) {
                     /* Score Preload */
 
@@ -158,11 +129,8 @@ public class Auton2 extends OpMode
                 }
                 break;
             case 2:
-                shooterOn = false;
-                if (gobbleTimer.getElapsedTimeSeconds() > 0.5 && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
-                    targetAngle += 120;
-                    gobbleTimer.resetTimer();
-                }
+                runToPickUp();
+
                 if(!follower.isBusy()) {
                     /* Grab Sample */
 
@@ -176,18 +144,8 @@ public class Auton2 extends OpMode
                 }
                 break;
             case 3:
-                shooterOn = true;
-                /// //green
-                if (!hold) {
-                    if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
-                        if (colorISee == colorIWant) {
-                            hold = true;
-                        } else {
-                            timesChecked++;
-                            targetAngle += 120;
-                        }
-                    }
-                }
+                runToDropOff();
+
                 if(!follower.isBusy()) {
                     /* Score Sample */
 
@@ -199,41 +157,7 @@ public class Auton2 extends OpMode
                 }
                 break;
             case 4:
-                if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5 && timesShot != 3) {
-                    if (timesChecked >= number[timesShot]) {
-                        if (pushed) {
-                            if (noClueWhatToCallThis == 2) {
-                                targetAngle -= 120;
-                            } else {
-                                targetAngle += 120;
-                            }
-                            pushed = false;
-                        } else {
-                            nudgePosition = 0.25;
-                            sinceHighered.resetTimer();
-                            pushed = true;
-                        }
-                    } else {
-                        if (colorISee == colorIWant) {
-                            nudgePosition = 0.25;
-                            sinceHighered.resetTimer();
-                            timesChecked = 0;
-                        } else {
-                            timesChecked++;
-                            if (timesChecked >= number[timesShot]) {
-                            } else {
-                                if (noClueWhatToCallThis == 2) {
-                                    targetAngle -= 120;
-                                } else {
-                                    targetAngle += 120;
-                                }
-                                if (timesShot == 1) {
-                                    noClueWhatToCallThis++;
-                                }
-                            }
-                        }
-                    }
-                }
+                runWhileShooting();
 
 
                 if(!follower.isBusy() && timesShot == 3) {
@@ -246,11 +170,8 @@ public class Auton2 extends OpMode
                 }
                 break;
             case 5:
-                shooterOn = false;
-                if (gobbleTimer.getElapsedTimeSeconds() > 0.5 && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
-                    targetAngle += 120;
-                    gobbleTimer.resetTimer();
-                }
+                runToPickUp();
+
                 if(!follower.isBusy()) {
                     /* Score Sample */
 
@@ -264,18 +185,9 @@ public class Auton2 extends OpMode
                 }
                 break;
             case 6:
-                shooterOn = true;
-                /// ///green
-                if (!hold) {
-                    if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
-                        if (colorISee == colorIWant) {
-                            hold = true;
-                        } else {
-                            timesChecked++;
-                            targetAngle += 120;
-                        }
-                    }
-                }
+
+                runToDropOff();
+
                 if(!follower.isBusy()) {
                     /* Grab Sample */
 
@@ -287,41 +199,8 @@ public class Auton2 extends OpMode
                 }
                 break;
             case 7:
-                if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5 && timesShot != 3) {
-                    if (timesChecked >= number[timesShot]) {
-                        if (pushed) {
-                            if (noClueWhatToCallThis == 2) {
-                                targetAngle -= 120;
-                            } else {
-                                targetAngle += 120;
-                            }
-                            pushed = false;
-                        } else {
-                            nudgePosition = 0.25;
-                            sinceHighered.resetTimer();
-                            pushed = true;
-                        }
-                    } else {
-                        if (colorISee == colorIWant) {
-                            nudgePosition = 0.25;
-                            sinceHighered.resetTimer();
-                            timesChecked = 0;
-                        } else {
-                            timesChecked++;
-                            if (timesChecked >= number[timesShot]) {
-                            } else {
-                                if (noClueWhatToCallThis == 2) {
-                                    targetAngle -= 120;
-                                } else {
-                                    targetAngle += 120;
-                                }
-                                if (timesShot == 1) {
-                                    noClueWhatToCallThis++;
-                                }
-                            }
-                        }
-                    }
-                }
+                runWhileShooting();
+
                 if(!follower.isBusy() && timesShot == 3) {
                     /* Set the state to a Case we won't use or define, so it just stops running an new paths */
                     setPathState(-1);
@@ -384,4 +263,62 @@ public class Auton2 extends OpMode
     /** We do not use this because everything should automatically disable **/
     @Override
     public void stop() {}
+    public void runToPickUp() {
+        shooterOn = false;
+        if (gobbleTimer.getElapsedTimeSeconds() > 0.5 && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
+            targetAngle += 120;
+            gobbleTimer.resetTimer();
+        }
+    }
+    public void runWhileShooting() {
+        if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5 && timesShot != 3) {
+            if (timesChecked >= number[timesShot]) {
+                if (pushed) {
+                    if (noClueWhatToCallThis == 2) {
+                        targetAngle -= 120;
+                    } else {
+                        targetAngle += 120;
+                    }
+                    pushed = false;
+                } else {
+                    nudgePosition = 0.25;
+                    sinceHighered.resetTimer();
+                    pushed = true;
+                }
+            } else {
+                if (colorISee == colorIWant) {
+                    nudgePosition = 0.35;
+                    sinceHighered.resetTimer();
+                    timesChecked = 0;
+                } else {
+                    timesChecked++;
+                    if (timesChecked >= number[timesShot]) {
+                    } else {
+                        if (noClueWhatToCallThis == 2) {
+                            targetAngle -= 120;
+                        } else {
+                            targetAngle += 120;
+                        }
+                        if (timesShot == 1) {
+                            noClueWhatToCallThis++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    public void runToDropOff() {
+        shooterOn = true;
+        /// //green
+        if (!hold) {
+            if (spinindexer.withinRange(targetAngle) && nudgePosition == 0 && sinceLowered.getElapsedTimeSeconds() > 0.5) {
+                if (colorISee == colorIWant) {
+                    hold = true;
+                } else {
+                    timesChecked++;
+                    targetAngle += 120;
+                }
+            }
+        }
+    }
 }

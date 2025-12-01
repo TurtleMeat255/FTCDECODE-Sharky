@@ -13,9 +13,9 @@ public class Spinindexer {
     private final ElapsedTime sinceMadeDown = new ElapsedTime();
     private int currentTicks = 0;
     private double currentAngle = 360 * currentTicks/145.6;
-    private double kp = 0.007; // 0.015
+    private final double kp = 0.015; // 0.025
     private final double ki = 0;
-    private double kd = 0; // 0.001
+    private double kd = 0; // 0.00075
     private double lastError = 0;
     private double integralSum = 0;
     private static double nudgyPosition = 0.05;
@@ -26,10 +26,7 @@ public class Spinindexer {
     private double greenAngle = 0;
     private double purpleAngle = 0;
     double encoderResolution = 537.7;
-
     double spindexerSpeed = 0.5;
-
-    ElapsedTime positionalCorrectness = new ElapsedTime();
 
     public void init(HardwareMap hwMap) {
         spinner = hwMap.get(DcMotor.class, "spinner");
@@ -37,7 +34,7 @@ public class Spinindexer {
         colorSensor = hwMap.get(ColorSensor.class, "colorSensor");
         spinner.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         spinner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        spinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        spinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public int colorDetected() { // 1 = green, 2 = purple
@@ -75,6 +72,9 @@ public class Spinindexer {
         }
         nudger.setPosition(nudgyPosition);
     }
+    public void nudge2(double nudgyPosition) {
+        nudger.setPosition(nudgyPosition);
+    }
 
     public boolean isItDown() {
         if (sinceMadeDown.milliseconds() > nudgerTime && Math.abs(0.05 - nudger.getPosition()) < 0.01) {
@@ -84,16 +84,11 @@ public class Spinindexer {
         }
     }
     public boolean withinRange (double targetThing) {
-        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) >= 15)
-        {
-            positionalCorrectness.reset();
+        if (Math.abs(360 * spinner.getCurrentPosition()/encoderResolution - targetThing) <= 15) {
+            return true;
+        } else {
+            return false;
         }
-        return positionalCorrectness.seconds() > 0.1;
-    }
-
-    public double GetPositionalCorrectness()
-    {
-        return positionalCorrectness.seconds();
     }
 
     public void SpindexerPower(double power)
@@ -107,11 +102,11 @@ public class Spinindexer {
         double error = currentAngle - targetAngle;
         double derivative;
 
-        if (Math.abs(currentAngle - targetAngle) < 5)
-        {
-            spinner.setPower(0);
-            return;
-        }
+//        if (withinRange(targetAngle))
+//        {
+//            spinner.setPower(0);
+//            return;
+//        }
 
         if (PIDTimer.seconds() > 0) {
             derivative = (error - lastError)/PIDTimer.seconds();
@@ -128,11 +123,21 @@ public class Spinindexer {
         if (power <= -1) {
             power = -1;
         }
-        spinner.setPower(power * -spindexerSpeed);
+        spinner.setPower(power * -0.3);
         PIDTimer.reset();
     }
     public void runNudger(double input) {
         nudger.setPosition(input);
+    }
+
+    public double GetCurrentPosition()
+    {
+        return spinner.getCurrentPosition();
+    }
+
+    public double GetEncoderResolution()
+    {
+        return encoderResolution;
     }
 
     public void RapidFiring(boolean input)
@@ -163,14 +168,5 @@ public class Spinindexer {
     {
         return kp;
     }
-
-    public double GetCurrentPosition()
-    {
-        return spinner.getCurrentPosition();
-    }
-
-    public double GetEncoderResolution()
-    {
-        return encoderResolution;
-    }
 }
+
