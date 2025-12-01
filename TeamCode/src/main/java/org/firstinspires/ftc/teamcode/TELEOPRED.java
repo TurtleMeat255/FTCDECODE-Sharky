@@ -63,6 +63,8 @@ public class TELEOPRED extends LinearOpMode{
 
     boolean isFieldCentric = true;
 
+    boolean bringingDownArm = false;
+
     @Override
     public void runOpMode() {
         drivetrain.init(hardwareMap);
@@ -346,12 +348,11 @@ public class TELEOPRED extends LinearOpMode{
                 }
             }
 
-            if (coloringRn) {
+            if (coloringRn && !readyToShoot) {
                 if (spinindexer.withinRange(inputAngle)) {
                     if (colorSensor.GetDetectedColor() == colorIWant) {
                         readyToShoot = true;
                         coloringRn = false;
-                        pushUpTimer.reset();
                     } else {
                         pushUp = false;
                         ticker += 1;
@@ -440,17 +441,25 @@ public class TELEOPRED extends LinearOpMode{
                 if (shooter.RPMCorrect(firingRPM))
                 {
                     pushUp = true;
+                    pushUpTimer.reset();
                 }
             }
 
-            if (pushUpTimer.seconds() > pushUpMaxTime/2)
+            if (pushUpTimer.seconds() > pushUpMaxTime/2 && pushUp)
             {
                 pushUp = false;
+                bringingDownArm = true;
             }
 
-            if (pushUpTimer.seconds() > pushUpMaxTime)
+            if (pushUpTimer.seconds() > pushUpMaxTime && bringingDownArm)
             {
                 readyToShoot = false;
+                bringingDownArm = false;
+            }
+
+            if (rumbleTimer.seconds() == 100) {
+                gamepad1.rumble(100);
+                gamepad2.rumble(100);
             }
 
             if (rumbleTimer.seconds() >= 100 && !isEndgame)
@@ -471,7 +480,6 @@ public class TELEOPRED extends LinearOpMode{
             telemetry.addData("current shooter actual rpm", shooter.GetShooterRPM());
             telemetry.addData("shooter at rpm", shooter.RPMCorrect(firingRPM));
             telemetry.addData("distance", limelight.GetDistance());
-            telemetry.addData("GetPositionalCorrectness", spinindexer.GetPositionalCorrectness());
             telemetry.addData("GetKP", spinindexer.GetKP());
             telemetry.addData("Rotation", drivetrain.GetRotation());
             telemetry.update();

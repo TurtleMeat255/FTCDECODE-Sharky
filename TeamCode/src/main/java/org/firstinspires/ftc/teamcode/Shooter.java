@@ -133,7 +133,7 @@ public class Shooter {
         switch(currentState) {
 
             case FAR_LOB_SHOT:
-                SetShooterPower(3300);
+                SetShooterPower(3150);
                 SetHoodPosition(0.40);
 
                 IS_FAR_LOB_SHOT = true;

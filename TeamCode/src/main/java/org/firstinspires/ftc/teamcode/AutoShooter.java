@@ -14,7 +14,7 @@ public class AutoShooter {
     DcMotorEx rightShooter = null;
     DcMotorEx turretMotor = null;
     Servo leftHood = null;
-    Servo righthood = null;
+    Servo rightHood = null;
 
     double lastRPMERROR = 0;
     ElapsedTime timer = new ElapsedTime();
@@ -42,7 +42,7 @@ public class AutoShooter {
         rightShooter = hwMap.get(DcMotorEx.class, "rightShooter");
 
         leftHood = hwMap.get(Servo.class, "leftHood");
-        righthood = hwMap.get(Servo.class, "righthood");
+        rightHood = hwMap.get(Servo.class, "rightHood");
 
         timer.reset();
     }
@@ -50,7 +50,8 @@ public class AutoShooter {
     public void turnTurretBLUE() {
         double tx = limeLight.GetTX();
 
-        if (limeLight.GetLimelightId() == 20 && randomVariable) { // Lowkey not sure what this does for sorting APRILTAGLOL!!
+        // should make it just stop if it sees wrong april tag
+        if (limeLight.GetLimelightId() != 20) { // Lowkey not sure what this does for sorting APRILTAGLOL!!
             turretMotor.setPower(0);
             integralSum = 0;
             lastError = 0;
