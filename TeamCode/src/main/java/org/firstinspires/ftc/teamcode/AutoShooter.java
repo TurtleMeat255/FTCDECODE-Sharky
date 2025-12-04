@@ -61,7 +61,7 @@ public class AutoShooter {
         timer.reset();
     }
 
-    public void turnTurretBLUE() {
+    public void turnTurretBlue() {
         double tx = limeLight.GetTX();
 
         // should make it just stop if it sees wrong april tag
