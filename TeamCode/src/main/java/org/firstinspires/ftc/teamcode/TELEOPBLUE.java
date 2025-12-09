@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp
 public class TELEOPBLUE extends LinearOpMode{
-    FTCDriveTrain drivetrain = new FTCDriveTrain();
+    FTCDriveTrain drivetrain;
     Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
     IntakeCode intake = new IntakeCode();
@@ -65,7 +65,7 @@ public class TELEOPBLUE extends LinearOpMode{
 
     @Override
     public void runOpMode() {
-        drivetrain.init(hardwareMap);
+        drivetrain = new FTCDriveTrain(hardwareMap);
         intake.init(hardwareMap);
         spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);

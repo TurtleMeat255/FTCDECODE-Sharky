@@ -1,25 +1,19 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
-public class FTCDriveTrain
+public class FTCDriveTrain extends SubsystemBase
 {
     double moveSpeed = 1.0;
-    DcMotor frontLeftMotor;
-    DcMotor backLeftMotor;
-    DcMotor frontRightMotor;
-    DcMotor backRightMotor;
+    private final Motor frontLeftMotor;
+    private final Motor backLeftMotor;
+    private final Motor frontRightMotor;
+    private final Motor backRightMotor;
 
     SparkFunOTOS otos;
 
@@ -29,21 +23,24 @@ public class FTCDriveTrain
     double lastError = 0;
     double errorCrunchConstant = 3;
 
-    public void init(HardwareMap hwMap) {
+    public FTCDriveTrain(HardwareMap hwMap) {
         // Declare our motors
         // Make sure your ID's match your configuration
-        frontLeftMotor = hwMap.get(DcMotor.class, "frontLeftMotor"); // Port 0
-        backLeftMotor = hwMap.get(DcMotor.class, "backLeftMotor"); // Port 1
-        frontRightMotor = hwMap.get(DcMotor.class, "frontRightMotor"); // Port 2
-        backRightMotor = hwMap.get(DcMotor.class, "backRightMotor"); // Port 3
+        frontLeftMotor = new Motor(hwMap, "frontLeftMotor"); // Port 0
+        backLeftMotor = new Motor(hwMap, "backLeftMotor"); // Port 1
+        frontRightMotor = new Motor(hwMap, "frontRightMotor"); // Port 2
+        backRightMotor = new Motor(hwMap, "backRightMotor"); // Port 3
+
+        frontLeftMotor.setRunMode(Motor.RunMode.RawPower);
+        backLeftMotor.setRunMode(Motor.RunMode.RawPower);
+        frontRightMotor.setRunMode(Motor.RunMode.RawPower);
+        backRightMotor.setRunMode(Motor.RunMode.RawPower);
 
 
-        // Reverse the right side motors. This may be wrong for your setup.
-        // If your robot moves backwards when commanded to go forwards,
-        // reverse the left side instead.
-        // See the note about this earlier on this page.
-        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontLeftMotor.setInverted(true);
+        backLeftMotor.setInverted(true);
+        frontRightMotor.setInverted(false);
+        backRightMotor.setInverted(false);
 
         otos = hwMap.get(SparkFunOTOS.class, "otos");
         otos.setOffset(new SparkFunOTOS.Pose2D(1.5,-7,Math.PI));
@@ -54,17 +51,17 @@ public class FTCDriveTrain
     {
         if (input)
         {
-            frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            frontLeftMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+            backLeftMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+            frontRightMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+            backRightMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         }
         else
         {
-            frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            frontLeftMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
+            backLeftMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
+            frontRightMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
+            backRightMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
         }
     }
 
@@ -76,10 +73,10 @@ public class FTCDriveTrain
         double frontRightPower = (y - x - rx) / denominator;
         double backRightPower = (y + x - rx) / denominator;
 
-        frontLeftMotor.setPower(frontLeftPower * moveSpeed);
-        backLeftMotor.setPower(backLeftPower * moveSpeed);
-        frontRightMotor.setPower(frontRightPower * moveSpeed);
-        backRightMotor.setPower(backRightPower * moveSpeed);
+        frontLeftMotor.set(frontLeftPower * moveSpeed);
+        backLeftMotor.set(backLeftPower * moveSpeed);
+        frontRightMotor.set(frontRightPower * moveSpeed);
+        backRightMotor.set(backRightPower * moveSpeed);
     }
 
     public void RobotCentricAlign(double x, double y, double tx)
@@ -119,9 +116,6 @@ public class FTCDriveTrain
 
     public void Translate(double x, double y, double rx, boolean reset)
     {
-        // This button choice was made so that it is hard to hit on accident,
-        // it can be freely changed based on preference.
-        // The equivalent button is start on Xbox-style controllers.
         SparkFunOTOS.Pose2D currentPose = otos.getPosition();
 
         currentPose.h = -angleWrap(currentPose.h * Math.PI/180);
@@ -136,19 +130,16 @@ public class FTCDriveTrain
 
         rotX = rotX * 1.1;  // Counteract imperfect strafing
 
-        // Denominator is the largest motor power (absolute value) or 1
-        // This ensures all the powers maintain the same ratio,
-        // but only if at least one is out of the range [-1, 1]
         double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
         double frontLeftPower = (rotY + rotX + rx) / denominator;
         double backLeftPower = (rotY - rotX + rx) / denominator;
         double frontRightPower = (rotY - rotX - rx) / denominator;
         double backRightPower = (rotY + rotX - rx) / denominator;
 
-        frontLeftMotor.setPower(frontLeftPower * moveSpeed);
-        backLeftMotor.setPower(backLeftPower * moveSpeed);
-        frontRightMotor.setPower(frontRightPower * moveSpeed);
-        backRightMotor.setPower(backRightPower * moveSpeed);
+        frontLeftMotor.set(frontLeftPower * moveSpeed);
+        backLeftMotor.set(backLeftPower * moveSpeed);
+        frontRightMotor.set(frontRightPower * moveSpeed);
+        backRightMotor.set(backRightPower * moveSpeed);
     }
 
     public void FieldCentricAlign(double targetPowerX, double targetPowerY, double tx)
@@ -237,10 +228,10 @@ public class FTCDriveTrain
 
         if (frontLeftMotor != null && frontRightMotor != null && backLeftMotor != null && backRightMotor != null)
         {
-            frontLeftMotor.setPower(flPower * moveSpeed);
-            frontRightMotor.setPower(frPower * moveSpeed);
-            backLeftMotor.setPower(blPower * moveSpeed);
-            backRightMotor.setPower(brPower * moveSpeed);
+            frontLeftMotor.set(flPower * moveSpeed);
+            frontRightMotor.set(frPower * moveSpeed);
+            backLeftMotor.set(blPower * moveSpeed);
+            backRightMotor.set(brPower * moveSpeed);
         }
     }
 

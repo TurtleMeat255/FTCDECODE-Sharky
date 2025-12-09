@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.arcrobotics.ftclib.hardware.motors.Motor;
+
 @TeleOp
 public class DriverOperator extends LinearOpMode{
-    FTCDriveTrain drivetrain = new FTCDriveTrain();
+    FTCDriveTrain drivetrain;
     Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
     IntakeCode intake = new IntakeCode();
@@ -19,7 +21,7 @@ public class DriverOperator extends LinearOpMode{
 
     @Override
     public void runOpMode() {
-        drivetrain.init(hardwareMap);
+        drivetrain = new FTCDriveTrain(hardwareMap);
         spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
         intake.init(hardwareMap);

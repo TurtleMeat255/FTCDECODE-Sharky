@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.Spinindexer;
 
 @Autonomous
 public class Auton3 extends LinearOpMode {
-    FTCDriveTrain dt = new FTCDriveTrain();
+    FTCDriveTrain dt;
     Spinindexer spindexer = new Spinindexer();
     Shooter shooter = new Shooter();
 
@@ -33,7 +33,7 @@ public class Auton3 extends LinearOpMode {
     {
         spindexer.init(hardwareMap);
         shooter.init(hardwareMap);
-        dt.init(hardwareMap);
+        dt = new FTCDriveTrain(hardwareMap);
 
         nudger = hardwareMap.get(Servo.class, "nudger");
         nudger.setDirection(Servo.Direction.REVERSE);
