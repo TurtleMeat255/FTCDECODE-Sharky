@@ -10,13 +10,11 @@ public class TELEOPRED extends LinearOpMode{
     FTCDriveTrain drivetrain = new FTCDriveTrain();
     Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
-    IntakeCode intake = new IntakeCode();
+    IntakeSubsystem intake;
     ColorSensor colorSensor = new ColorSensor();
     AprilTagLimeLight limelight = new AprilTagLimeLight();
 
     Servo nudger = null;
-
-    DcMotor intake1 = null;
 
     ElapsedTime dt = new ElapsedTime();
     ElapsedTime rumbleTimer = new ElapsedTime();
@@ -68,15 +66,14 @@ public class TELEOPRED extends LinearOpMode{
     @Override
     public void runOpMode() {
         drivetrain.init(hardwareMap);
-        intake.init(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap, "intake");
         spinindexer.init(hardwareMap);
-        shooter.init(hardwareMap);
+        dt = new FTCDriveTrain(hardwareMap);
         colorSensor.init(hardwareMap);
         limelight.init(hardwareMap);
         nudger = hardwareMap.get(Servo.class, "nudger");
         nudger.setDirection(Servo.Direction.REVERSE);
 
-        intake1 = hardwareMap.get(DcMotor.class, "intake");
 
         shooter.SetShooterPower(1);
 
@@ -187,16 +184,16 @@ public class TELEOPRED extends LinearOpMode{
 
             if (intakePressed > 0.3)
             {
-                intake1.setPower(-0.6);
+                intake.intake();
             }
             else
             {
-                intake1.setPower(0);
+                intake.stop();
             }
 
             if (reverseIntakeFront)
             {
-                intake1.setPower(0.6);
+                intake.outtake();
             }
 
             // Reverse intake code

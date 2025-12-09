@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.FTCDriveTrain;
-import org.firstinspires.ftc.teamcode.IntakeCode;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Spinindexer;
 
@@ -19,7 +18,7 @@ public class Auton extends OpMode
 {
     Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
-    IntakeCode intake = new IntakeCode();
+    IntakeSubsystem intake;
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer, shooterAccel, gobbleTimer, sinceLowered, sinceHighered;
@@ -257,7 +256,11 @@ public class Auton extends OpMode
 
 
         shooter.ActivateShooter(shooterOn, false);
-        intake.ActivateIntake(intakeOn, false);
+        if (intakeOn) {
+            intake.intake();
+        } else {
+            intake.stop();
+        }
         spinindexer.PID(targetAngle);
         spinindexer.runNudger(nudgePosition);
     }
@@ -293,6 +296,7 @@ public class Auton extends OpMode
 
 
         follower = Constants.createFollower(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap, "intake");
         buildPaths();
         follower.setStartingPose(startPose);
 

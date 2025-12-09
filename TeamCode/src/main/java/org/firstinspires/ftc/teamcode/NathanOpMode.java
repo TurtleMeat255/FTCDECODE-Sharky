@@ -7,8 +7,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp
-public class TESTOPMODE extends LinearOpMode{
-    FTCDriveTrain drivetrain = new FTCDriveTrain();
+public class NathanOpMode extends LinearOpMode{
+
+    NathanDriveTrain drivetrain = new NathanDriveTrain();
     Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
     IntakeSubsystem intake;
@@ -18,8 +19,6 @@ public class TESTOPMODE extends LinearOpMode{
     Servo nudger = null;
 
     ElapsedTime dt = new ElapsedTime();
-    ElapsedTime rumbleTimer = new ElapsedTime();
-    boolean isEndgame = false;
 
     public double inputAngle = 0;
     public boolean intakeAligned = false;
@@ -30,15 +29,12 @@ public class TESTOPMODE extends LinearOpMode{
     boolean coloringRn = false;
     ColorSensor.DetectedColor colorIWant = ColorSensor.DetectedColor.UNKNOWN; // 0 = no color, 1 = green, 2 = purple
     int ticker = 0;
- // And these for the nudger
+    // And these for the nudger
     boolean pushUp; // This will be set by your logic
     boolean pushDown;
 
-    boolean canMoveR = true;
-    boolean canSwapModeR = true;
-
-    boolean canMoveL = true;
-    boolean canSwapModeL = true;
+    boolean canMove = true;
+    boolean canSwapMode = true;
     boolean swapping = false;
     double servoPos = 0;
 
@@ -57,17 +53,13 @@ public class TESTOPMODE extends LinearOpMode{
     int rpmIncrement = 200;
 
     boolean autoTargeting = false;
-    boolean rapidFiring = false;
-
-    boolean isFieldCentric = true;
-    boolean bringingDownArm = false;
 
     @Override
     public void runOpMode() {
-        drivetrain = new FTCDriveTrain(hardwareMap);
+        drivetrain.init(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap, "intake");
         spinindexer.init(hardwareMap);
-        shooter.init(hardwareMap);
+        dt = new FTCDriveTrain(hardwareMap);
         colorSensor.init(hardwareMap);
         limelight.init(hardwareMap);
         nudger = hardwareMap.get(Servo.class, "nudger");
@@ -95,78 +87,57 @@ public class TESTOPMODE extends LinearOpMode{
             boolean activateAutoTarget = gamepad1.dpad_right;
             boolean deactivateAutoTarget = gamepad1.dpad_down;
 
-            boolean resetButton = gamepad1.options;
+            boolean reverseIntakeShooter = gamepad1.dpad_left;
 
-            boolean swapFieldCentric = gamepad1.dpad_left;
-            boolean swapRobotCentric = gamepad1.dpad_up;
+            boolean resetButton = gamepad1.a;
+
+            boolean reverseIntakeFront = gamepad1.b;
 
             // Gamepad 2
 
-                //Spindexer
+            //Spindexer
 
-            boolean spindexSixthRight = gamepad2.dpad_right;
-            boolean spindexThirdRight = gamepad2.dpad_up;
-            boolean spindexSixthLeft = gamepad2.dpad_left;
-            boolean spindexThirdLeft = gamepad2.dpad_down;
-
+            boolean spindexSixth = gamepad2.dpad_left;
+            boolean spindexThird = gamepad2.dpad_up;
             double spindexerManual = gamepad2.right_stick_x;
 
-                // Shooter
+            // Shooter
 
-            boolean activateAutoShoot = gamepad2.options;
-            boolean activateManualShoot = gamepad2.start;
+            boolean activateAutoShoot = gamepad2.dpad_right;
+            boolean activateManualShoot = gamepad2.dpad_down;
+
 
             // You will also need these for the color selection logic
             boolean shootAPurple = gamepad2.x;
             boolean shootAGreen = gamepad2.b;
-            boolean rapidFire = gamepad2.a;
 
-                // hood
+            // hood
 
             boolean hoodUp = gamepad2.right_bumper;
             boolean hoodDown = gamepad2.left_bumper;
 
-            boolean reverseIntakeShooter = gamepad2.left_bumper;
-
-                // Intake
+            // Intake
 
             double intakePressed = gamepad2.right_trigger;
             double shooterPressed = gamepad2.left_trigger;
 
-            boolean reverseIntakeFront = gamepad2.right_bumper;
-
-                // Limelight
+            // Limelight
 
             double distance = limelight.GetDistance();
 
-                // Nudger
+            // Nudger
 
             boolean raiseNudger = gamepad2.y;
 
             if (autoTargeting)
             {
-                drivetrain.FieldCentricAlign(xPos,yPos,limelight.GetTX());
+                drivetrain.RobotCentricAlign(xPos,yPos,limelight.GetTX());
             }
             else
             {
-                if (isFieldCentric)
-                {
-                    drivetrain.FieldOrientedTranslate(xPos,yPos,rot,resetButton);
-                }
-                else
-                {
-                    drivetrain.Translate(xPos,yPos,rot,resetButton);
-                }
+                drivetrain.RobotCentric(xPos,yPos,rot);
             }
 
-            if (swapFieldCentric)
-            {
-                isFieldCentric = true;
-            }
-            else if (swapRobotCentric)
-            {
-                isFieldCentric = false;
-            }
 
             if (raiseNudger)
             {
@@ -174,7 +145,7 @@ public class TESTOPMODE extends LinearOpMode{
                 pushUpTimer.reset();
             }
 
-            if (intakePressed)
+            if (intakePressed > 0.3)
             {
                 intake.intake();
             }
@@ -190,8 +161,12 @@ public class TESTOPMODE extends LinearOpMode{
 
             // Reverse intake code
 
-            if (reverseIntakeShooter && !rapidFiring) {
-                shooter.FireAtRPM(-300);
+            if (reverseIntakeShooter) {
+                shooter.ActivateShooter(false, true);
+            }
+
+            else {
+                shooter.ActivateShooter(false, false);
             }
 
             if (activateAutoShoot)
@@ -231,8 +206,8 @@ public class TESTOPMODE extends LinearOpMode{
                 }
                 else
                 {
-                    firingRPM = 3000;
-                    shooter.SetHoodPosition(0.45);
+                    firingRPM = 3300;
+                    shooter.SetHoodPosition(0.8);
                 }
             }
             else
@@ -271,10 +246,7 @@ public class TESTOPMODE extends LinearOpMode{
             }
             else
             {
-                if (!rapidFiring && !coloringRn && !reverseIntakeShooter)
-                {
-                    shooter.SetShooterRPM(0);
-                }
+                shooter.SetShooterRPM(0);
             }
 
             if (Math.abs(spindexerManual) > 0.3)
@@ -282,46 +254,23 @@ public class TESTOPMODE extends LinearOpMode{
                 inputAngle += spindexerManual/Math.abs(spindexerManual) * 120 * dt.seconds();
             }
 
-            if (spindexThirdRight && canMoveR && canSwapModeR) {
-                spinindexer.BallKD(true);
+            if (spindexThird && canMove && canSwapMode) {
                 inputAngle += 120;
-                canMoveR = false;
+                canMove = false;
             }
-            else if (!spindexThirdRight)
+            else if (!spindexThird)
             {
-                canMoveR = true;
+                canMove = true;
             }
 
-            if (spindexSixthRight && canSwapModeR) {
-                spinindexer.BallKD(false);
+            if (spindexSixth && canSwapMode) {
                 inputAngle += 60;
                 intakeAligned = !intakeAligned;
-                canSwapModeR = false;
+                canSwapMode = false;
             }
-            else if (!spindexSixthRight)
+            else if (!spindexSixth)
             {
-                canSwapModeR = true;
-            }
-
-            if (spindexThirdLeft && canMoveL && canSwapModeL) {
-                spinindexer.BallKD(true);
-                inputAngle -= 120;
-                canMoveL = false;
-            }
-            else if (!spindexThirdLeft)
-            {
-                canMoveL = true;
-            }
-
-            if (spindexSixthLeft && canSwapModeL) {
-                spinindexer.BallKD(false);
-                inputAngle -= 60;
-                intakeAligned = !intakeAligned;
-                canSwapModeL = false;
-            }
-            else if (!spindexSixthLeft)
-            {
-                canSwapModeL = true;
+                canSwapMode = true;
             }
 
             if (!coloringRn && spinindexer.isItDown()) {
@@ -337,11 +286,12 @@ public class TESTOPMODE extends LinearOpMode{
                 }
             }
 
-            if (coloringRn && !readyToShoot) {
+            if (coloringRn) {
                 if (spinindexer.withinRange(inputAngle)) {
                     if (colorSensor.GetDetectedColor() == colorIWant) {
                         readyToShoot = true;
                         coloringRn = false;
+                        pushUpTimer.reset();
                     } else {
                         pushUp = false;
                         ticker += 1;
@@ -354,104 +304,30 @@ public class TESTOPMODE extends LinearOpMode{
                 }
             }
 
-            if (!pushUp && !rapidFiring)
+            if (!pushUp)
             {
                 spinindexer.PID(inputAngle);
             }
 
-            if (rapidFire)
-            {
-                rapidFiring = true;
-
-                if (spinindexer.withinRange(inputAngle))
-                {
-                    drivetrain.SwapToBrakeMode(true);
-                    drivetrain.RobotCentricAlign(0,0,0);
-                    spinindexer.RapidFiring(true);
-                    spinindexer.BallKD(true);
-                    for (int i = 0; i < 3; i ++)
-                    {
-                        if (i > 0)
-                        {
-                            inputAngle += 120;
-                        }
-                        while (!shooter.RPMCorrect(firingRPM) || !spinindexer.withinRange(inputAngle))
-                        {
-                            shooter.SetShooterRPM(firingRPM);
-                            spinindexer.PID(inputAngle);
-
-                            if (autoShoot)
-                            {
-                                if (distance >= 66)
-                                {
-                                    firingRPM = 3300;
-                                    shooter.SetHoodPosition(0.8);
-                                }
-                                else if (distance >= 45 && distance <= 65)
-                                {
-                                    firingRPM = 3000;
-                                    shooter.SetHoodPosition(0.45);
-                                }
-
-                                else if (distance <= 44) {
-                                    firingRPM = 2700;
-                                    shooter.SetHoodPosition(0.8);
-                                }
-                                else
-                                {
-                                    firingRPM = 3000;
-                                    shooter.SetHoodPosition(0.45);
-                                }
-                            }
-                        }
-
-                        spinindexer.nudging(true);
-                        sleep(300);
-                        spinindexer.nudging(false);
-                        sleep(200);
-                    }
-                    rapidFiring = false;
-                    drivetrain.SwapToBrakeMode(false);
-                    spinindexer.BallKD(false);
-                }
-            }
-
-            if (!rapidFiring)
-            {
-                spinindexer.RapidFiring(false);
-            }
-
             dt.reset();
 
-            if (readyToShoot)
+            if (shooter.RPMCorrect(firingRPM))
             {
-                shooter.SetShooterRPM(firingRPM);
-
-                if (shooter.RPMCorrect(firingRPM))
+                if (readyToShoot)
                 {
                     pushUp = true;
                     pushUpTimer.reset();
                 }
             }
-            // controller shake
 
-            if (rumbleTimer.seconds() >= 100 && !isEndgame)
-            {
-                gamepad1.rumbleBlips(2);
-                gamepad2.rumbleBlips(2);
-                isEndgame = true;
-            }
-
-            if (pushUpTimer.seconds() > pushUpMaxTime/2 && pushUp)
+            if (pushUpTimer.seconds() > pushUpMaxTime/2)
             {
                 pushUp = false;
-                bringingDownArm = true;
             }
 
-            if (pushUpTimer.seconds() > pushUpMaxTime && bringingDownArm)
+            if (pushUpTimer.seconds() > pushUpMaxTime)
             {
                 readyToShoot = false;
-                bringingDownArm = false;
             }
 
             spinindexer.nudging(pushUp);
@@ -465,11 +341,8 @@ public class TESTOPMODE extends LinearOpMode{
             telemetry.addData("current shooter actual rpm", shooter.GetShooterRPM());
             telemetry.addData("shooter at rpm", shooter.RPMCorrect(firingRPM));
             telemetry.addData("distance", limelight.GetDistance());
-            telemetry.addData("GetKP", spinindexer.GetKP());
-            telemetry.addData("Rotation", drivetrain.GetRotation());
             telemetry.update();
         }
     }
 }
 
-// added comment to annoy natey boy

@@ -13,7 +13,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.AprilTagLimeLight;
 import org.firstinspires.ftc.teamcode.ColorSensor;
-import org.firstinspires.ftc.teamcode.IntakeCode;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Spinindexer;
 
@@ -22,7 +21,7 @@ public class Auton5 extends OpMode {
 
     Spinindexer spindexer = new Spinindexer();
     Shooter shooter = new Shooter();
-    IntakeCode intake = new IntakeCode();
+    IntakeSubsystem intake;
     ColorSensor colorSensor = new ColorSensor();
 
     AprilTagLimeLight limelight = new AprilTagLimeLight();
@@ -354,7 +353,7 @@ public class Auton5 extends OpMode {
                 break;
             case 3:
                 if(!follower.isBusy()) {
-                    intake.ActivateIntake(false, true);
+                    intake.outtake();
 
                     follower.followPath(grab11,true);
                     setPathState(4);
@@ -362,7 +361,7 @@ public class Auton5 extends OpMode {
                 break;
             case 4:
                 if(!follower.isBusy()) {
-                    intake.ActivateIntake(false, true);
+                    intake.outtake();
 
                     inputAngle += 120;
                     while(!spindexer.withinRange(inputAngle))
@@ -376,7 +375,7 @@ public class Auton5 extends OpMode {
                 break;
             case 5:
                 if(!follower.isBusy()) {
-                    intake.ActivateIntake(false, true);
+                    intake.outtake();
 
                     inputAngle += 120;
                     while(!spindexer.withinRange(inputAngle))
@@ -423,7 +422,7 @@ public class Auton5 extends OpMode {
                 break;
             case 8:
                 if(!follower.isBusy()) {
-                    intake.ActivateIntake(false, true);
+                    intake.outtake();
 
                     inputAngle += 120;
                     while(!spindexer.withinRange(inputAngle))
@@ -437,7 +436,7 @@ public class Auton5 extends OpMode {
                 break;
             case 9:
                 if(!follower.isBusy()) {
-                    intake.ActivateIntake(false, true);
+                    intake.outtake();
 
                     follower.followPath(grab21,true);
                     setPathState(10);
@@ -445,7 +444,7 @@ public class Auton5 extends OpMode {
                 break;
             case 10:
                 if(!follower.isBusy()) {
-                    intake.ActivateIntake(false, true);
+                    intake.outtake();
 
                     inputAngle += 120;
                     while(!spindexer.withinRange(inputAngle))
@@ -554,7 +553,7 @@ public class Auton5 extends OpMode {
 
         spindexer.init(hardwareMap);
         shooter.init(hardwareMap);
-        intake.init(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap, "intake");
         colorSensor.init(hardwareMap);
         limelight.init(hardwareMap);
     }

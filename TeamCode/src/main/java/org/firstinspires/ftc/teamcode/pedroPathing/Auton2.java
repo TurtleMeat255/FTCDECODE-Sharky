@@ -12,7 +12,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.AprilTagLimeLight;
 import org.firstinspires.ftc.teamcode.ColorSensor;
 import org.firstinspires.ftc.teamcode.FTCDriveTrain;
-import org.firstinspires.ftc.teamcode.IntakeCode;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Spinindexer;
 
@@ -21,7 +20,7 @@ public class Auton2 extends OpMode
 {
     Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
-    IntakeCode intake = new IntakeCode();
+    IntakeSubsystem intake;
     ColorSensor colorSensor = new ColorSensor();
     AprilTagLimeLight limelight = new AprilTagLimeLight();
 
@@ -208,7 +207,11 @@ public class Auton2 extends OpMode
                 break;
         }
         shooter.ActivateShooter(shooterOn, false);
-        intake.ActivateIntake(intakeOn, false);
+        if (intakeOn) {
+            intake.intake();
+        } else {
+            intake.stop();
+        }
         spinindexer.PID(targetAngle);
     }
 
@@ -243,6 +246,7 @@ public class Auton2 extends OpMode
 
 
         follower = Constants.createFollower(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap, "intake");
         buildPaths();
         follower.setStartingPose(startPose);
 

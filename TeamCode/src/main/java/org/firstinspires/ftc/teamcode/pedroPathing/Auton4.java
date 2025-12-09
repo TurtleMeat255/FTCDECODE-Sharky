@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.FTCDriveTrain;
-import org.firstinspires.ftc.teamcode.IntakeCode;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Spinindexer;
 
@@ -33,7 +32,7 @@ public class Auton4 extends LinearOpMode {
     {
         spindexer.init(hardwareMap);
         shooter.init(hardwareMap);
-        dt.init(hardwareMap);
+        dt = new FTCDriveTrain(hardwareMap);
 
         nudger = hardwareMap.get(Servo.class, "nudger");
         nudger.setDirection(Servo.Direction.REVERSE);

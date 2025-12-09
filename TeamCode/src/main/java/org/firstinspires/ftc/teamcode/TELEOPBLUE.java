@@ -10,13 +10,11 @@ public class TELEOPBLUE extends LinearOpMode{
     FTCDriveTrain drivetrain = new FTCDriveTrain();
     Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
-    IntakeCode intake = new IntakeCode();
+    IntakeSubsystem intake;
     ColorSensor colorSensor = new ColorSensor();
     AprilTagLimeLight limelight = new AprilTagLimeLight();
 
     Servo nudger = null;
-
-    DcMotor intake1 = null;
 
     ElapsedTime dt = new ElapsedTime();
 
@@ -65,8 +63,8 @@ public class TELEOPBLUE extends LinearOpMode{
 
     @Override
     public void runOpMode() {
-        drivetrain.init(hardwareMap);
-        intake.init(hardwareMap);
+        drivetrain = new FTCDriveTrain(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap, "intake");
         spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
         colorSensor.init(hardwareMap);
@@ -74,7 +72,6 @@ public class TELEOPBLUE extends LinearOpMode{
         nudger = hardwareMap.get(Servo.class, "nudger");
         nudger.setDirection(Servo.Direction.REVERSE);
 
-        intake1 = hardwareMap.get(DcMotor.class, "intake");
 
         shooter.SetShooterPower(1);
 
@@ -185,16 +182,16 @@ public class TELEOPBLUE extends LinearOpMode{
 
             if (intakePressed > 0.3)
             {
-                intake1.setPower(-0.6);
+                intake.intake();
             }
             else
             {
-                intake1.setPower(0);
+                intake.stop();
             }
 
             if (reverseIntakeFront)
             {
-                intake1.setPower(0.6);
+                intake.outtake();
             }
 
             // Reverse intake code

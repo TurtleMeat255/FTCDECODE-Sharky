@@ -3,10 +3,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 @TeleOp
 public class DriverOperator extends LinearOpMode{
-    FTCDriveTrain drivetrain = new FTCDriveTrain();
+    FTCDriveTrain drivetrain;
     Spinindexer spinindexer = new Spinindexer();
     Shooter shooter = new Shooter();
-    IntakeCode intake = new IntakeCode();
+    IntakeSubsystem intake;
     public double inputAngle = 0;
     public boolean intakeAligned = true;
     boolean lastShooterLeft = false;
@@ -19,10 +19,10 @@ public class DriverOperator extends LinearOpMode{
 
     @Override
     public void runOpMode() {
-        drivetrain.init(hardwareMap);
+        drivetrain = new FTCDriveTrain(hardwareMap);
         spinindexer.init(hardwareMap);
         shooter.init(hardwareMap);
-        intake.init(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap, "intake");
 
         // I wanna know if initialization is complete.
         telemetry.addData("Status", "Robot is Initialized");
@@ -54,7 +54,13 @@ public class DriverOperator extends LinearOpMode{
             shooter.HoodStuff(Hoodup, Hooddown);
 
             //intake i forgot
-            intake.ActivateIntake(gamepad1.a, gamepad1.b);
+            if (gamepad1.a) {
+                intake.intake();
+            } else if (gamepad1.b) {
+                intake.outtake();
+            } else {
+                intake.stop();
+            }
 
             // Shoot stuff ahhh code.
             if (gamepad2.a) {
