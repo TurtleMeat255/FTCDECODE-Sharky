@@ -53,7 +53,6 @@ public class FTCSwerveDrive {
 
 
     public void init(HardwareMap hwMap) {
-        // --- Hardware Mapping ---
         frontLeftMotor  = hwMap.get(DcMotorEx.class, "frontLeftMotor");
         frontLeftServo  = hwMap.get(CRServo.class,     "frontLeftServo");
         frontLeftAnalog = hwMap.get(AnalogInput.class, "frontLeftAnalog");

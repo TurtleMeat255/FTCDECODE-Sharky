@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 
 public class AutoShooter {
     AprilTagLimeLight limeLight = new AprilTagLimeLight();
@@ -52,18 +53,21 @@ public class AutoShooter {
     final int TURRET_MAX_TICKS = 1000;
     final int TURRET_MIN_TICKS = -1000;
 
-    final double TICKS_PER_REV = 537.7; 
-    final double GEAR_RATIO = 5.0;    
+    final double TICKS_PER_REV = 537.7;
+    final double GEAR_RATIO = 5.0;
     final double TICKS_PER_DEGREE = (TICKS_PER_REV * GEAR_RATIO) / 360.0;
-    
+
     enum TurretState {
         TRACKING,
         UNWINDING
     }
     TurretState currentState = TurretState.TRACKING;
     double unwindTargetAngle = 0;
+    double unwindStartHeading = 0; // To track robot rotation
+    SparkFunOTOS otos;
 
     public void init(HardwareMap hwMap) {
+        otos = hwMap.get(SparkFunOTOS.class, "otos");
 
         turretMotor = hwMap.get(DcMotorEx.class, "turretMotor");
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -124,9 +128,15 @@ public class AutoShooter {
 
         // Maybe unwind?
         if (currentState == TurretState.UNWINDING) {
-            turnToAngle(unwindTargetAngle);
+            // Field-Centric Unwinding
+            double currentHeading = otos.getPosition().h;
+            double headingDelta = currentHeading - unwindStartHeading;
+            double dynamicTarget = unwindTargetAngle - headingDelta;
+
+            turnToAngle(dynamicTarget);
+
             // We track or we UNWIND
-            if (Math.abs(getTurretAngle() - unwindTargetAngle) < 5.0) {
+            if (Math.abs(getTurretAngle() - dynamicTarget) < 5.0) {
                 currentState = TurretState.TRACKING;
                 timer.reset();
             }
@@ -142,16 +152,17 @@ public class AutoShooter {
 
         if (hitMax || hitMin) {
             output = 0;
-            
+
             // Maybe unwind again?
             double currentAngle = getTurretAngle();
             double alternativeAngle = hitMax ? (currentAngle - 360) : (currentAngle + 360);
-            
+
             double altTicks = alternativeAngle * TICKS_PER_DEGREE;
             if (altTicks >= TURRET_MIN_TICKS && altTicks <= TURRET_MAX_TICKS) {
                 currentState = TurretState.UNWINDING;
                 unwindTargetAngle = alternativeAngle;
-                return; 
+                unwindStartHeading = otos.getPosition().h; // Capture start heading
+                return;
             }
         }
 
@@ -203,8 +214,15 @@ public class AutoShooter {
 
         // UNWIND HIS SHIIIII
         if (currentState == TurretState.UNWINDING) {
-            turnToAngle(unwindTargetAngle);
-            if (Math.abs(getTurretAngle() - unwindTargetAngle) < 5.0) {
+            // Field-Centric Unwinding
+            // Field-Centric Unwinding
+            double currentHeading = otos.getPosition().h;
+            double headingDelta = currentHeading - unwindStartHeading;
+            double dynamicTarget = unwindTargetAngle - headingDelta;
+
+            turnToAngle(dynamicTarget);
+
+            if (Math.abs(getTurretAngle() - dynamicTarget) < 5.0) {
                 currentState = TurretState.TRACKING;
                 timer.reset();
             }
@@ -221,16 +239,17 @@ public class AutoShooter {
 
         if (hitMax || hitMin) {
             output = 0;
-            
+
             // Ong the other side is reachable!!
             double currentAngle = getTurretAngle();
             double alternativeAngle = hitMax ? (currentAngle - 360) : (currentAngle + 360);
-            
+
             // Who decided that!?
             double altTicks = alternativeAngle * TICKS_PER_DEGREE;
             if (altTicks >= TURRET_MIN_TICKS && altTicks <= TURRET_MAX_TICKS) {
                 currentState = TurretState.UNWINDING;
                 unwindTargetAngle = alternativeAngle;
+                unwindStartHeading = otos.getPosition().h; // Capture start heading
                 return; 
             }
         }

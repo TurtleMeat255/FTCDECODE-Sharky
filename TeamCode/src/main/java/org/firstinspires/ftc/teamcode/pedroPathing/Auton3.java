@@ -32,8 +32,8 @@ public class Auton3 extends LinearOpMode {
     public void runOpMode()
     {
         spindexer.init(hardwareMap);
-        shooter.init(hardwareMap);
         dt = new FTCDriveTrain(hardwareMap);
+        shooter.init(hardwareMap);
 
         nudger = hardwareMap.get(Servo.class, "nudger");
         nudger.setDirection(Servo.Direction.REVERSE);
