@@ -112,7 +112,9 @@ public class AutoShooter {
         double derivative = (error - lastError) / dt;
         lastError = error;
 
-        double output = kP * error + kD * derivative;
+        integralSum += error * dt;
+
+        double output = kP * error + kI * integralSum + kD * derivative;
 
         double delta = output - lastOutput;
         if (Math.abs(delta) > maxDeltaPower) {
@@ -189,7 +191,9 @@ public class AutoShooter {
         double derivative = (error - lastError) / dt;
         lastError = error;
 
-        double output = kP * error + kD * derivative;
+        integralSum += error * dt;
+
+        double output = kP * error + kI * integralSum + kD * derivative;
 
         double delta = output - lastOutput;
         if (Math.abs(delta) > maxDeltaPower) {
@@ -284,6 +288,19 @@ public class AutoShooter {
 
         leftShooter.setPower(output);
         rightShooter.setPower(output);
+    }
+
+    public double getTurretAngle() {
+        return turretMotor.getCurrentPosition() / TICKS_PER_DEGREE;
+    }
+
+    public void turnToAngle(double targetAngle) {
+        int targetTicks = (int) (targetAngle * TICKS_PER_DEGREE);
+
+        turretMotor.setTargetPosition(targetTicks);
+        turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        turretMotor.setPower(0.67);
     }
 }
 
