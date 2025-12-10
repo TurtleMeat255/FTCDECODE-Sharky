@@ -48,9 +48,27 @@ public class AutoShooter {
     double lastFilteredTx = 0;
     double lastOutput = 0;
 
+    // Safety Limits - PLACEHOLDER VALUES, MUST BE TUNED
+    final int TURRET_MAX_TICKS = 1000;
+    final int TURRET_MIN_TICKS = -1000;
+
+    final double TICKS_PER_REV = 537.7; 
+    final double GEAR_RATIO = 5.0;    
+    final double TICKS_PER_DEGREE = (TICKS_PER_REV * GEAR_RATIO) / 360.0;
+    
+    enum TurretState {
+        TRACKING,
+        UNWINDING
+    }
+    TurretState currentState = TurretState.TRACKING;
+    double unwindTargetAngle = 0;
+
     public void init(HardwareMap hwMap) {
 
         turretMotor = hwMap.get(DcMotorEx.class, "turretMotor");
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         leftShooter = hwMap.get(DcMotorEx.class, "leftShooter");
         rightShooter = hwMap.get(DcMotorEx.class, "rightShooter");
@@ -102,7 +120,38 @@ public class AutoShooter {
         }
         lastOutput = output;
 
+        // Maybe unwind?
+        if (currentState == TurretState.UNWINDING) {
+            turnToAngle(unwindTargetAngle);
+            // We track or we UNWIND
+            if (Math.abs(getTurretAngle() - unwindTargetAngle) < 5.0) {
+                currentState = TurretState.TRACKING;
+                timer.reset();
+            }
+            return;
+        }
+
         output = Math.max(-maxPower, Math.min(maxPower, output));
+
+        // Onn skibidi?
+        int currentPos = turretMotor.getCurrentPosition();
+        boolean hitMax = (currentPos > TURRET_MAX_TICKS && -output > 0);
+        boolean hitMin = (currentPos < TURRET_MIN_TICKS && -output < 0);
+
+        if (hitMax || hitMin) {
+            output = 0;
+            
+            // Maybe unwind again?
+            double currentAngle = getTurretAngle();
+            double alternativeAngle = hitMax ? (currentAngle - 360) : (currentAngle + 360);
+            
+            double altTicks = alternativeAngle * TICKS_PER_DEGREE;
+            if (altTicks >= TURRET_MIN_TICKS && altTicks <= TURRET_MAX_TICKS) {
+                currentState = TurretState.UNWINDING;
+                unwindTargetAngle = alternativeAngle;
+                return; 
+            }
+        }
 
         // lowkey, if it's backwards, just reverse the output!!
         turretMotor.setPower(-output);
@@ -148,7 +197,39 @@ public class AutoShooter {
         }
         lastOutput = output;
 
+        // UNWIND HIS SHIIIII
+        if (currentState == TurretState.UNWINDING) {
+            turnToAngle(unwindTargetAngle);
+            if (Math.abs(getTurretAngle() - unwindTargetAngle) < 5.0) {
+                currentState = TurretState.TRACKING;
+                timer.reset();
+            }
+            return;
+        }
+
+        // Normul jrrrking logic
         output = Math.max(-maxPower, Math.min(maxPower, output));
+
+        // Soft or HARD limit check ya know?
+        int currentPos = turretMotor.getCurrentPosition();
+        boolean hitMax = (currentPos > TURRET_MAX_TICKS && -output > 0);
+        boolean hitMin = (currentPos < TURRET_MIN_TICKS && -output < 0);
+
+        if (hitMax || hitMin) {
+            output = 0;
+            
+            // Ong the other side is reachable!!
+            double currentAngle = getTurretAngle();
+            double alternativeAngle = hitMax ? (currentAngle - 360) : (currentAngle + 360);
+            
+            // Who decided that!?
+            double altTicks = alternativeAngle * TICKS_PER_DEGREE;
+            if (altTicks >= TURRET_MIN_TICKS && altTicks <= TURRET_MAX_TICKS) {
+                currentState = TurretState.UNWINDING;
+                unwindTargetAngle = alternativeAngle;
+                return; 
+            }
+        }
 
         // lowkey, if it's backwards, just reverse the output!!
         turretMotor.setPower(-output);
