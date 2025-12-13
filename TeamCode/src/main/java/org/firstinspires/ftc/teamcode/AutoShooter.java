@@ -293,11 +293,11 @@ public class AutoShooter {
         lastOutput = output;
 
         /*
-        Have you ever heard the tragedy of Darth Plagueis the rizzler?
+        Have you heard the tragedy of Darth Plagueis the rizzler?
         No,
         I thought so, it's not a story the Betas' would tell you.
-        He was a mog lord of the sigmas.
-        It is said that he could influence the betas' to... show their gyats...
+        Plagueis was a mog lord of the sigmas.
+        He was so powerful that, it is said that he could influence the betas' to... show their gyats...
         He... Could actually rizz up Livvy Dune?!?
         He was so powerful that... the only thing he was afraid of was... losing his rizz.
         Which in the end he did...

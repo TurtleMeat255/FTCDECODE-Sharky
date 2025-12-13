@@ -38,6 +38,8 @@ public class TELEOPBLUE extends LinearOpMode{
     boolean canMoveR = true;
     boolean canSwapModeR = true;
 
+    boolean isEndgame = false;
+
     boolean canMoveL = true;
     boolean canSwapModeL = true;
     boolean swapping = false;
@@ -458,6 +460,13 @@ public class TELEOPBLUE extends LinearOpMode{
             if (rumbleTimer.seconds() == 100) {
                 gamepad1.rumble(100);
                 gamepad2.rumble(100);
+            }
+
+            if (rumbleTimer.seconds() >= 100 && !isEndgame)
+            {
+                gamepad1.rumbleBlips(2);
+                gamepad2.rumbleBlips(2);
+                isEndgame = true;
             }
 
             spinindexer.nudging(pushUp);
