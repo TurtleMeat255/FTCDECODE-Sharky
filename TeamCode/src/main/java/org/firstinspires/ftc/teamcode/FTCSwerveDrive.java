@@ -34,11 +34,12 @@ public class FTCSwerveDrive extends SubsystemBase {
     PIDController rlPID;
     PIDController rrPID;
 
-    final double L = 8.0;
-    final double W = 8.0;
-
+    final double L = 8.0; // These are uhh place holders... TRUTH NUKE!!
+    final double W = 8.0; // Same with these!! MUWAHAAHAHAHAHA!!
+    final double GEAR_RATIO = 2f/3f;
+    
     double FRkP = 0.03;
-    double FRkI = 0.0; // Adjusted for FTCLib likely needing non-zero I if used, or keep 0
+    double FRkI = 0.0; 
     double FRkD = 0.001;
 
     double FLkP = 0.03;
@@ -72,6 +73,7 @@ public class FTCSwerveDrive extends SubsystemBase {
         backLeftAnalog  = hwMap.get(AnalogInput.class, "backLeftAnalog");
 
         otos = hwMap.get(SparkFunOTOS.class, "otos");
+        //  otos.setOffset(new SparkFunOTOS.Pose2D(1.5,-7,Math.PI)); I need the CAD!!!
         otos.calibrateImu();
 
         frPID = new PIDController(FRkP, FRkI, FRkD);
@@ -89,8 +91,6 @@ public class FTCSwerveDrive extends SubsystemBase {
         double x_cmd_robot = fwd_cmd_field * Math.sin(heading_rad) + strafe_cmd_field * Math.cos(heading_rad);
         double y_cmd_robot = fwd_cmd_field * Math.cos(heading_rad) - strafe_cmd_field * Math.sin(heading_rad);
         
-
-
         double y_fr = y_cmd_robot - turn_cmd * W; 
         double x_fr = x_cmd_robot + turn_cmd * L;
         
@@ -171,7 +171,7 @@ public class FTCSwerveDrive extends SubsystemBase {
 
     private double getAngle(AnalogInput sensor) {
         final double VOLT_TO_DEG = 360.0 / 3.3; // Yup... Just yup
-        double rawAngle = sensor.getVoltage() * VOLT_TO_DEG;
+        double rawAngle = (sensor.getVoltage() * VOLT_TO_DEG) / GEAR_RATIO;
         return rawAngle % 360.0;
     }
 
