@@ -78,6 +78,22 @@ public class FTCSwerveDrive extends SubsystemBase {
         flPID = new PIDController(FLkP, FLkI, FLkD);
         rlPID = new PIDController(RLkP, RLkI, RLkD);
         rrPID = new PIDController(RRkP, RRkI, RRkD);
+
+        /*
+        Just in case...
+
+        frontLeftMotor.setInverted(true);
+        frontLeftServo.setInverted(true);
+
+        backLeftMotor.setInverted(true);
+        backLeftServo.setInverted(true);
+
+        frontRightMotor.setInverted(true);
+        frontRightServo.setInverted(true);
+
+        backRightMotor.setInverted(true);
+        backRightServo.setInverted(true);
+         */
     }
 
     public void swerveDrive(double fwd_cmd_field, double strafe_cmd_field, double turn_cmd, boolean reset) {
@@ -168,7 +184,7 @@ public class FTCSwerveDrive extends SubsystemBase {
     }
 
     private double normalize(double angle) {
-        //
+        // Random comment?
         while (angle > 180) angle -= 360;
         while (angle < -180) angle += 360;
         return angle;
@@ -183,6 +199,8 @@ public class FTCSwerveDrive extends SubsystemBase {
         }
         return new double[]{normalize(target), speed};
     }
+
+    // It's the most beautiful thing i've ever seen in my life, it's a PID controller, INSIDE of a PID Controller!!
 
     public class PIDController {
 
@@ -212,5 +230,7 @@ public class FTCSwerveDrive extends SubsystemBase {
             return Math.max(-1.0, Math.min(1.0, output));
         }
     }
+
+    // If this doesn't work imma crash out on Zephyr Zhang... He's going to feel my wrath...
 }
 
