@@ -314,12 +314,37 @@ public class AutoShooter {
     }
 
     public void turnToAngle(double targetAngle) {
-        int targetTicks = (int) (targetAngle * TICKS_PER_DEGREE);
 
-        turretMotor.setTargetPosition(targetTicks);
-        turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        // SOOOo... I just realized that using RUN_TO_POSITION with my own PID and the FTC one is going to basically ruin things.
+        // So i'm basically just making my own new PID for new things.
+        double currentAngle = getTurretAngle();
 
-        turretMotor.setPower(0.67);
+        double error = targetAngle - currentAngle;
+        while (error > 180) error -= 360;
+        while (error < -180) error += 360;
+
+        double dtSeconds = timer.seconds();
+        timer.reset();
+        if (dtSeconds <= 0) dtSeconds = 0.001;
+
+        integralSum += error * dtSeconds;
+        double maxIntegral = 1.0; // tune as needed yuh?
+        integralSum = Math.max(-maxIntegral, Math.min(maxIntegral, integralSum));
+
+        double derivative = (error - lastError) / dtSeconds;
+        lastError = error;
+
+        double output = kP * error + kI * integralSum + kD * derivative;
+
+        double delta = output - lastOutput;
+        if (Math.abs(delta) > maxDeltaPower) {
+            output = lastOutput + Math.signum(delta) * maxDeltaPower;
+        }
+        lastOutput = output;
+
+        output = Math.max(-maxPower, Math.min(maxPower, output));
+
+        turretMotor.setPower(output);
     }
 }
 
