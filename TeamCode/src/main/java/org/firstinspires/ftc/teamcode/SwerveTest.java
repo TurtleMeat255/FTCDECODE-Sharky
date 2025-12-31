@@ -11,26 +11,27 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @TeleOp
 public class SwerveTest extends OpMode
 {
-//    FTCSwerveDrive swerveDt = new FTCSwerveDrive();
-//
-//    @Override
-//    public void init()
-//    {
-//        swerveDt.init(hardwareMap);
-//    }
-//
-//    @Override
-//    public void loop()
-//    {
-//        double leftStickX = gamepad1.left_stick_x;
-//        double leftStickY = gamepad1.left_stick_y;
-//
-//        double rightStickX = gamepad1.right_stick_x;
-//        boolean reset = gamepad1.options;
-//
-//        swerveDt.swerveDrive(leftStickY, leftStickX, rightStickX, reset);
-//    }
+    FTCSwerveDrive swerveDt = new FTCSwerveDrive();
 
+    @Override
+    public void init()
+    {
+        swerveDt.init(hardwareMap);
+    }
+
+    @Override
+    public void loop()
+    {
+        double leftStickX = gamepad1.left_stick_x;
+        double leftStickY = gamepad1.left_stick_y;
+
+        double rightStickX = gamepad1.right_stick_x;
+        boolean reset = gamepad1.options;
+
+        swerveDt.swerveDrive(leftStickY, leftStickX, rightStickX, reset);
+    }
+
+    /*
     final double L = 8.0;
     final double W = 8.0;
 
@@ -43,9 +44,9 @@ public class SwerveTest extends OpMode
 
 
 
-    double FLkP = 0.03;
+    double FLkP = 0.06 ;
     double FLkI = 0.0;
-    double FLkD = 0.0015;
+    double FLkD = 0.0010;
 
     double inputAngle = 0;
     double turnSpeedDeg = 60;
@@ -141,7 +142,7 @@ public class SwerveTest extends OpMode
 
         double target_fl = optimized_fl[0];
         speed_fl = optimized_fl[1];
-        double steer_power_fl = flPID.calculate(target_fl, actual_angle_fl);
+        double steer_power_fl = flPID.calculate(0, actual_angle_fl);
 
 
         telemetry.addData("steer power", steer_power_fl);
@@ -203,7 +204,7 @@ public class SwerveTest extends OpMode
             double error = targetAngle - currentAngle;
             error = normalizeAngle(error);
 
-            error /= 10;
+            error /= 5;
 
             telemetry.addData("error", error);
 
@@ -232,5 +233,5 @@ public class SwerveTest extends OpMode
             return Math.max(-1.0, Math.min(1.0, output));
         }
 
-    }
+    } */
 }

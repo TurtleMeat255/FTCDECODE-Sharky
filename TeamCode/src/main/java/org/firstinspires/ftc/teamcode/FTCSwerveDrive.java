@@ -1,20 +1,19 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.arcrobotics.ftclib.command.SubsystemBase;
-import com.arcrobotics.ftclib.hardware.motors.CRServo;
-import com.arcrobotics.ftclib.hardware.motors.Motor;
-
 import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
-import com.qualcomm.robotcore.util.ElapsedTime; // Needed for PID
 
-public class FTCSwerveDrive extends SubsystemBase {
 
-    Motor frontLeftMotor;
-    Motor backLeftMotor;
-    Motor frontRightMotor;
-    Motor backRightMotor;
+public class FTCSwerveDrive {
+
+    DcMotorEx frontLeftMotor;
+    DcMotorEx backLeftMotor;
+    DcMotorEx frontRightMotor;
+    DcMotorEx backRightMotor;
     CRServo frontLeftServo;
     CRServo backLeftServo;
     CRServo frontRightServo;
@@ -27,15 +26,14 @@ public class FTCSwerveDrive extends SubsystemBase {
     AnalogInput frontRightAnalog;
     AnalogInput backRightAnalog;
 
-    // PID Controller Instances
+    //  PID Controller Instances
     PIDController frPID;
     PIDController flPID;
     PIDController rlPID;
     PIDController rrPID;
 
-    final double L = 8.0; // These are uhh place holders... TRUTH NUKE!!
-    final double W = 8.0; // Same with these!! MUWAHAAHAHAHAHA!!
-    final double GEAR_RATIO = 2.0 / 3.0;
+    final double L = 11.043307;
+    final double W = 11.273622;
 
     double FRkP = 0.03;
     double FRkI = 0.0;
@@ -53,91 +51,69 @@ public class FTCSwerveDrive extends SubsystemBase {
     double RRkI = 0.0;
     double RRkD = 0.001;
 
+
     public void init(HardwareMap hwMap) {
-        frontLeftMotor  = new Motor(hwMap, "frontLeftMotor");
-        frontLeftServo  = new CRServo(hwMap, "frontLeftServo");
+        frontLeftMotor  = hwMap.get(DcMotorEx.class, "frontLeftMotor");
+        frontLeftServo  = hwMap.get(CRServo.class,     "frontLeftServo");
         frontLeftAnalog = hwMap.get(AnalogInput.class, "frontLeftAnalog");
 
-        frontRightMotor = new Motor(hwMap, "frontRightMotor");
-        frontRightServo = new CRServo(hwMap, "frontRightServo");
+        frontRightMotor = hwMap.get(DcMotorEx.class, "frontRightMotor");
+        frontRightServo = hwMap.get(CRServo.class,     "frontRightServo");
         frontRightAnalog = hwMap.get(AnalogInput.class, "frontRightAnalog");
 
-        backRightMotor  = new Motor(hwMap, "backRightMotor");
-        backRightServo  = new CRServo(hwMap, "backRightServo");
+        backRightMotor  = hwMap.get(DcMotorEx.class, "backRightMotor");
+        backRightServo  = hwMap.get(CRServo.class,     "backRightServo");
         backRightAnalog = hwMap.get(AnalogInput.class, "backRightAnalog");
 
-        backLeftMotor   = new Motor(hwMap, "backLeftMotor");
-        backLeftServo   = new CRServo(hwMap, "backLeftServo");
-        backLeftAnalog  = hwMap.get(AnalogInput.class, "backLeftAnalog");
+        backLeftMotor   = hwMap.get(DcMotorEx.class, "backLeftMotor");
+        backLeftServo   = hwMap.get(CRServo.class,     "backLeftServo");
+        backLeftAnalog = hwMap.get(AnalogInput.class, "backLeftAnalog");
 
         otos = hwMap.get(SparkFunOTOS.class, "otos");
-        // otos.setOffset(new SparkFunOTOS.Pose2D(1.5,-7,Math.PI)); I need the CAD!!!
         otos.calibrateImu();
 
         frPID = new PIDController(FRkP, FRkI, FRkD);
         flPID = new PIDController(FLkP, FLkI, FLkD);
         rlPID = new PIDController(RLkP, RLkI, RLkD);
         rrPID = new PIDController(RRkP, RRkI, RRkD);
-
-        /*
-        Just in case...
-
-        frontLeftMotor.setInverted(true);
-        frontLeftServo.setInverted(true);
-
-        backLeftMotor.setInverted(true);
-        backLeftServo.setInverted(true);
-
-        frontRightMotor.setInverted(true);
-        frontRightServo.setInverted(true);
-
-        backRightMotor.setInverted(true);
-        backRightServo.setInverted(true);
-         */
     }
 
-    public void swerveDrive(double fwd_cmd_field, double strafe_cmd_field, double turn_cmd, boolean reset) {
+    public void swerveDrive(double y_cmd_field, double x_cmd_field, double turn_cmd, boolean reset) {
 
         SparkFunOTOS.Pose2D currentPose = otos.getPosition();
-        double heading_rad = Math.toRadians(currentPose.h);
+        double heading_rad = currentPose.h;
 
-        // Field-centric conversion NOT GRADE 9 METH
-        double x_cmd_robot = fwd_cmd_field * Math.cos(heading_rad) + strafe_cmd_field * Math.sin(heading_rad);
-        double y_cmd_robot = -fwd_cmd_field * Math.sin(heading_rad) + strafe_cmd_field * Math.cos(heading_rad);
+        // Field-centric conversion THIS IS NOT grade 9 METH!
+        double x_cmd_robot = x_cmd_field * Math.cos(heading_rad) + y_cmd_field * Math.sin(heading_rad);
+        double y_cmd_robot = -x_cmd_field * Math.sin(heading_rad) + y_cmd_field * Math.cos(heading_rad);
 
-        // OKAY... So basically for rotation I need distance the wheel is from the center so it's like
-        // Pythagorean Theorem. Right...
-        double R = Math.hypot(L, W);
+        double y_fr = y_cmd_robot - turn_cmd * L;
+        double x_fr = x_cmd_robot - turn_cmd * W;
+        double y_fl = y_cmd_robot - turn_cmd * L;
+        double x_fl = x_cmd_robot + turn_cmd * W;
+        double y_rl = y_cmd_robot + turn_cmd * L;
+        double x_rl = x_cmd_robot + turn_cmd * W;
+        double y_rr = y_cmd_robot + turn_cmd * L;
+        double x_rr = x_cmd_robot - turn_cmd * W;
 
-        // Then I assign each of the X and Y of a cardinal plane direction a letter cause why not.
-        double a = x_cmd_robot - turn_cmd * (L / R);
-        double b = x_cmd_robot + turn_cmd * (L / R);
-        double c = y_cmd_robot - turn_cmd * (W / R);
-        double d = y_cmd_robot + turn_cmd * (W / R);
-
-        double x_fr = b, y_fr = c;
-        double x_fl = b, y_fl = d;
-        double x_rl = a, y_rl = d;
-        double x_rr = a, y_rr = c;
-
-        // Then just stuff those into the wheels. So NOW it should work correctly.
+        // Calculate Speed and Target Angle
         double speed_fr = Math.hypot(x_fr, y_fr);
         double speed_fl = Math.hypot(x_fl, y_fl);
         double speed_rl = Math.hypot(x_rl, y_rl);
         double speed_rr = Math.hypot(x_rr, y_rr);
 
-        // lowkey, atan2?
-        double angle_fr_deg = Math.toDegrees(Math.atan2(y_fr, x_fr));
-        double angle_fl_deg = Math.toDegrees(Math.atan2(y_fl, x_fl));
-        double angle_rl_deg = Math.toDegrees(Math.atan2(y_rl, x_rl));
-        double angle_rr_deg = Math.toDegrees(Math.atan2(y_rr, x_rr));
+        // atan2(x, y) makes 0 degrees = forward (Y-axis)
+        double angle_fr_deg = Math.toDegrees(Math.atan2(x_fr, y_fr));
+        double angle_fl_deg = Math.toDegrees(Math.atan2(x_fl, y_fl));
+        double angle_rl_deg = Math.toDegrees(Math.atan2(x_rl, y_rl));
+        double angle_rr_deg = Math.toDegrees(Math.atan2(x_rr, y_rr));
 
+        // Normalize speeds to ensure maximum speed is 1.0
         double max = Math.max(
                 Math.max(speed_fr, speed_fl),
                 Math.max(speed_rl, speed_rr)
         );
 
-        // Normalize the spedos...
         if (max > 1.0) {
             speed_fr /= max;
             speed_fl /= max;
@@ -145,92 +121,127 @@ public class FTCSwerveDrive extends SubsystemBase {
             speed_rr /= max;
         }
 
-        // 90-Degree Optimization & PID Control
-        double actual_fr = getAngle(frontRightAnalog);
-        double actual_fl = getAngle(frontLeftAnalog);
-        double actual_rl = getAngle(backLeftAnalog);
-        double actual_rr = getAngle(backRightAnalog);
+        //  90-Degree Optimization & PID Control
 
-        double[] fr = optimize(angle_fr_deg, speed_fr, actual_fr);
-        double[] fl = optimize(angle_fl_deg, speed_fl, actual_fl);
-        double[] rl = optimize(angle_rl_deg, speed_rl, actual_rl);
-        double[] rr = optimize(angle_rr_deg, speed_rr, actual_rr);
+        // Get current angles from sensors
+        double actual_angle_fr = getAngle(frontRightAnalog);
+        double actual_angle_fl = getAngle(frontLeftAnalog);
+        double actual_angle_rl = getAngle(backLeftAnalog);
+        double actual_angle_rr = getAngle(backRightAnalog);
 
-        // We drive, we steer. WE DRIVE-STEER
-        frontRightServo.set(frPID.calculate(fr[0], actual_fr));
-        frontRightMotor.set(fr[1]);
+        // Apply optimization to target angle and drive speed
+        double[] optimized_fr = optimize(angle_fr_deg, speed_fr, actual_angle_fr);
+        double[] optimized_fl = optimize(angle_fl_deg, speed_fl, actual_angle_fl);
+        double[] optimized_rl = optimize(angle_rl_deg, speed_rl, actual_angle_rl);
+        double[] optimized_rr = optimize(angle_rr_deg, speed_rr, actual_angle_rr);
 
-        frontLeftServo.set(flPID.calculate(fl[0], actual_fl));
-        frontLeftMotor.set(fl[1]);
+        double target_fr = optimized_fr[0];
+        speed_fr = optimized_fr[1];
 
-        backLeftServo.set(rlPID.calculate(rl[0], actual_rl));
-        backLeftMotor.set(rl[1]);
+        double target_fl = optimized_fl[0];
+        speed_fl = optimized_fl[1];
 
-        backRightServo.set(rrPID.calculate(rr[0], actual_rr));
-        backRightMotor.set(rr[1]);
+        double target_rl = optimized_rl[0];
+        speed_rl = optimized_rl[1];
 
-        // buh
+        double target_rr = optimized_rr[0];
+        speed_rr = optimized_rr[1];
+
+        double steer_power_fr = frPID.calculate(target_fr, actual_angle_fr);
+        double steer_power_fl = flPID.calculate(target_fl, actual_angle_fl);
+        double steer_power_rl = rlPID.calculate(target_rl, actual_angle_rl);
+        double steer_power_rr = rrPID.calculate(target_rr, actual_angle_rr);
+
+        frontRightServo.setPower(steer_power_fr);
+        frontRightMotor.setPower(speed_fr);
+
+        frontLeftServo.setPower(steer_power_fl);
+        frontLeftMotor.setPower(speed_fl);
+
+        backLeftServo.setPower(steer_power_rl);
+        backLeftMotor.setPower(speed_rl);
+
+        backRightServo.setPower(steer_power_rr);
+        backRightMotor.setPower(speed_rr);
+
         if (reset) {
             otos.setPosition(new SparkFunOTOS.Pose2D(currentPose.x, currentPose.y, 0));
         }
     }
 
+    // axon servo volt - degrees
     private double getAngle(AnalogInput sensor) {
-        // The voltage shall become degrees??
-        double deg = (sensor.getVoltage() * (360.0 / 3.3)) / GEAR_RATIO;
-        deg %= 360;
-        if (deg > 180) deg -= 360;
-        return deg;
+        final double VOLT_TO_DEG = 360.0 / 3.3; // Assuming 3.3V reference
+        double rawAngle = sensor.getVoltage() * VOLT_TO_DEG;
+        return rawAngle % 360.0;
     }
 
-    private double normalize(double angle) {
-        // Random comment?
-        while (angle > 180) angle -= 360;
-        while (angle < -180) angle += 360;
+    //angle flip kinda stuff
+    private double normalizeAngle(double angle) {
+        while (angle > 180.0) angle -= 360.0;
+        while (angle < -180.0) angle += 360.0;
         return angle;
     }
 
-    private double[] optimize(double target, double speed, double current) {
-        // 90-degree optimization: flip wheel if it’s shorter? guh
-        double error = normalize(target - current);
-        if (Math.abs(error) > 90) {
-            target -= Math.signum(error) * 180;
-            speed *= -1;
-        }
-        return new double[]{normalize(target), speed};
-    }
+    private double[] optimize(double targetAngle, double driveSpeed, double currentAngle) {
+        double error = targetAngle - currentAngle;
 
-    // It's the most beautiful thing i've ever seen in my life, it's a PID controller, INSIDE of a PID Controller!!
+        error = normalizeAngle(error);
+
+        if (Math.abs(error) > 90.0) {
+            targetAngle = targetAngle - Math.signum(error) * 180.0;
+
+            driveSpeed *= -1.0;
+
+            targetAngle = normalizeAngle(targetAngle);
+        }
+
+        return new double[]{targetAngle, driveSpeed};
+    }
 
     public class PIDController {
 
-        double kP, kI, kD;
-        double integral = 0, lastError = 0;
-        ElapsedTime timer = new ElapsedTime();
+        private double kP, kI, kD;
+        private double integralSum = 0;
+        private double lastError = 0;
+        private ElapsedTime timer = new ElapsedTime();
 
-        PIDController(double p, double i, double d) {
-            kP = p; kI = i; kD = d;
+        public PIDController(double kP, double kI, double kD) {
+            this.kP = kP;
+            this.kI = kI;
+            this.kD = kD;
             timer.reset();
         }
 
-        double calculate(double target, double current) {
-            // I'm a genius. I added dead band because WPIlib is lowkey a fraud and FTC is different.
-            double error = normalize(target - current);
+        public double calculate(double targetAngle, double currentAngle) {
+            // Find the shortest error path [-180, 180]
+            double error = targetAngle - currentAngle;
+            error = normalizeAngle(error);
+
             double dt = timer.seconds();
             timer.reset();
 
-            integral += error * dt;
-            double derivative = (error - lastError) / (dt > 0 ? dt : 0.001);
+            // P - Proportional Term
+            double pTerm = kP * error;
+
+            // I - Integral Term
+            integralSum += error * dt;
+            if (kI != 0) {
+                integralSum = Math.max(Math.min(integralSum, 0.5 / kI), -0.5 / kI);
+            }
+            double iTerm = kI * integralSum;
+
+            // D - Derivative Term
+            double derivative = (error - lastError) / (dt > 0 ? dt : 0.001); // Avoid division by zero
+            double dTerm = kD * derivative;
+
             lastError = error;
 
-            double output = kP * error + kI * integral + kD * derivative;
+            double output = pTerm + iTerm + dTerm;
 
-            // Smol deadband to prevent the servo from tweaking out.
-            if (Math.abs(output) < 0.05) output = 0;
+            // Clamp output power
             return Math.max(-1.0, Math.min(1.0, output));
         }
+
     }
-
-    // If this doesn't work imma crash out on Zephyr Zhang... He's going to feel my wrath...
 }
-
