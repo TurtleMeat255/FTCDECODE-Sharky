@@ -17,6 +17,7 @@ public class FTCSwerveDrive {
     AnalogInput frontLeftAnalog, backLeftAnalog, frontRightAnalog, backRightAnalog;
 
     PIDController frPID, flPID, rlPID, rrPID;
+    ElapsedTime angleTimer = new ElapsedTime();
 
 //    SparkFunOTOS otos;
 
@@ -31,10 +32,12 @@ public class FTCSwerveDrive {
     double kP = 0.02;
     double kI = 0.0;
     double kD = 0.002;
+    double kF = 0.0005;
 
     final double GEARBOX_RATIO = 32.0f / 24.0f;
 
     double minServoPower = 0.03;
+
 
     double lastTargetFR = 0, lastTargetFL = 0, lastTargetRL = 0, lastTargetRR = 0;
 
@@ -58,10 +61,12 @@ public class FTCSwerveDrive {
 //        otos = hwMap.get(SparkFunOTOS.class, "otos");
 //        otos.initialize();
 
-        frPID = new PIDController(kP, kI, kD);
-        flPID = new PIDController(kP, kI, kD);
-        rlPID = new PIDController(kP, kI, kD);
-        rrPID = new PIDController(kP, kI, kD);
+        frPID = new PIDController(kP, kI, kD, kF);
+        flPID = new PIDController(kP, kI, kD, kF);
+        rlPID = new PIDController(kP, kI, kD, kF);
+        rrPID = new PIDController(kP, kI, kD, kF);
+
+        angleTimer.reset();
     }
 
 //    private void configureOtos() {
@@ -152,10 +157,32 @@ public class FTCSwerveDrive {
     }
 
     private void runPID(double tFR, double tFL, double tRL, double tRR) {
-        frontRightServo.setPower(frPID.calculate(tFR, getAngle(frontRightAnalog, FR_OFFSET)));
-        frontLeftServo.setPower(flPID.calculate(tFL, getAngle(frontLeftAnalog, FL_OFFSET)));
-        backLeftServo.setPower(rlPID.calculate(tRL, getAngle(backLeftAnalog, BL_OFFSET)));
-        backRightServo.setPower(rrPID.calculate(tRR, getAngle(backRightAnalog, BR_OFFSET)));
+        double dt = angleTimer.seconds();
+        angleTimer.reset();
+        if (dt < 0.001) dt = 0.001;
+
+        double velFR = normalizeAngle(tFR - lastTargetFR) / dt;
+        double velFL = normalizeAngle(tFL - lastTargetFL) / dt;
+        double velRL = normalizeAngle(tRL - lastTargetRL) / dt;
+        double velRR = normalizeAngle(tRR - lastTargetRR) / dt;
+
+        frontRightServo.setPower(
+                frPID.calculate(tFR, getAngle(frontRightAnalog, FR_OFFSET), velFR)
+        );
+        frontLeftServo.setPower(
+                flPID.calculate(tFL, getAngle(frontLeftAnalog, FL_OFFSET), velFL)
+        );
+        backLeftServo.setPower(
+                rlPID.calculate(tRL, getAngle(backLeftAnalog, BL_OFFSET), velRL)
+        );
+        backRightServo.setPower(
+                rrPID.calculate(tRR, getAngle(backRightAnalog, BR_OFFSET), velRR)
+        );
+
+        lastTargetFR = tFR;
+        lastTargetFL = tFL;
+        lastTargetRL = tRL;
+        lastTargetRR = tRR;
     }
 
     private double getAngle(AnalogInput sensor, double offset) {
@@ -182,38 +209,40 @@ public class FTCSwerveDrive {
     }
 
     public class PIDController {
-        private double kP, kI, kD;
-        private double integralSum = 0;
+        private double kP, kI, kD, kF;
         private double lastError = 0;
         private ElapsedTime timer = new ElapsedTime();
 
-        public PIDController(double kP, double kI, double kD) {
-            this.kP = kP; this.kI = kI; this.kD = kD;
+        public PIDController(double kP, double kI, double kD, double kF) {
+            this.kP = kP;
+            this.kI = kI;
+            this.kD = kD;
+            this.kF = kF;
             timer.reset();
         }
-        public double calculate(double target, double current) {
+
+        public double calculate(double target, double current, double targetVel) {
             double error = normalizeAngle(target - current);
             double dt = timer.seconds();
             timer.reset();
 
             if (dt < 0.001) dt = 0.001;
 
-            // PP-term
             double pTerm = error * kP;
-
-
             double derivative = (error - lastError) / dt;
             double dTerm = derivative * kD;
+
+            // PLEASE SPEED I NEED THIS!!!
+            // MY FEED IS KINDA FORWARDLESS!!!
+            double fTerm = targetVel * kF;
+
             lastError = error;
 
-            double output = pTerm + dTerm;
+            double output = pTerm + dTerm + fTerm;
 
-            if (Math.abs(error) < 0.5) {
-                return 0;
-            }
+            if (Math.abs(error) < 0.5) return 0;
 
             output += Math.signum(output) * minServoPower;
-
             return Range.clip(output, -1.0, 1.0);
         }
     }
