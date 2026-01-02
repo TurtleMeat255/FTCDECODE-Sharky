@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 
 public class AutoShooter {
     AprilTagLimeLight limeLight = new AprilTagLimeLight();
@@ -48,15 +49,36 @@ public class AutoShooter {
     double lastFilteredTx = 0;
     double lastOutput = 0;
 
+    // Safety Limits - PLACEHOLDER VALUES, MUST BE TUNED
+    final int TURRET_MAX_TICKS = 1000;
+    final int TURRET_MIN_TICKS = -1000;
+
+    final double TICKS_PER_REV = 537.7;
+    final double GEAR_RATIO = 5.0;
+    final double TICKS_PER_DEGREE = (TICKS_PER_REV * GEAR_RATIO) / 360.0;
+
+    enum TurretState {
+        TRACKING,
+        UNWINDING
+    }
+    TurretState currentState = TurretState.TRACKING;
+    double unwindTargetAngle = 0;
+    double unwindStartHeading = 0; // To track robot rotation
+    SparkFunOTOS otos;
+
     public void init(HardwareMap hwMap) {
+        otos = hwMap.get(SparkFunOTOS.class, "otos");
 
-        turretMotor = hwMap.get(DcMotorEx.class, "turretMotor");
+        turretMotor = hwMap.get(DcMotorEx.class, "turretMotor"); // Ctrl Hub 3
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        leftShooter = hwMap.get(DcMotorEx.class, "leftShooter");
-        rightShooter = hwMap.get(DcMotorEx.class, "rightShooter");
+//        leftShooter = hwMap.get(DcMotorEx.class, "leftShooter");
+        rightShooter = hwMap.get(DcMotorEx.class, "rightShooter"); // Exp Motor Port 3
 
-        leftHood = hwMap.get(Servo.class, "leftHood");
-        rightHood = hwMap.get(Servo.class, "rightHood");
+        leftHood = hwMap.get(Servo.class, "leftHood"); // Exp Port 2
+        rightHood = hwMap.get(Servo.class, "rightHood"); // Exp Port 3
 
         timer.reset();
     }
@@ -94,7 +116,9 @@ public class AutoShooter {
         double derivative = (error - lastError) / dt;
         lastError = error;
 
-        double output = kP * error + kD * derivative;
+        integralSum += error * dt;
+
+        double output = kP * error + kI * integralSum + kD * derivative;
 
         double delta = output - lastOutput;
         if (Math.abs(delta) > maxDeltaPower) {
@@ -102,7 +126,45 @@ public class AutoShooter {
         }
         lastOutput = output;
 
+        // Maybe unwind?
+        if (currentState == TurretState.UNWINDING) {
+            // Field-Centric Unwinding
+            double currentHeading = otos.getPosition().h;
+            double headingDelta = currentHeading - unwindStartHeading;
+            double dynamicTarget = unwindTargetAngle - headingDelta;
+
+            turnToAngle(dynamicTarget);
+
+            // We track or we UNWIND
+            if (Math.abs(getTurretAngle() - dynamicTarget) < 5.0) {
+                currentState = TurretState.TRACKING;
+                timer.reset();
+            }
+            return;
+        }
+
         output = Math.max(-maxPower, Math.min(maxPower, output));
+
+        // Onn skibidi?
+        int currentPos = turretMotor.getCurrentPosition();
+        boolean hitMax = (currentPos > TURRET_MAX_TICKS && -output > 0);
+        boolean hitMin = (currentPos < TURRET_MIN_TICKS && -output < 0);
+
+        if (hitMax || hitMin) {
+            output = 0;
+
+            // Maybe unwind again?
+            double currentAngle = getTurretAngle();
+            double alternativeAngle = hitMax ? (currentAngle - 360) : (currentAngle + 360);
+
+            double altTicks = alternativeAngle * TICKS_PER_DEGREE;
+            if (altTicks >= TURRET_MIN_TICKS && altTicks <= TURRET_MAX_TICKS) {
+                currentState = TurretState.UNWINDING;
+                unwindTargetAngle = alternativeAngle;
+                unwindStartHeading = otos.getPosition().h; // Capture start heading
+                return;
+            }
+        }
 
         // lowkey, if it's backwards, just reverse the output!!
         turretMotor.setPower(-output);
@@ -140,7 +202,9 @@ public class AutoShooter {
         double derivative = (error - lastError) / dt;
         lastError = error;
 
-        double output = kP * error + kD * derivative;
+        integralSum += error * dt;
+
+        double output = kP * error + kI * integralSum + kD * derivative;
 
         double delta = output - lastOutput;
         if (Math.abs(delta) > maxDeltaPower) {
@@ -148,7 +212,47 @@ public class AutoShooter {
         }
         lastOutput = output;
 
+        // UNWIND HIS SHIIIII
+        if (currentState == TurretState.UNWINDING) {
+            // Field-Centric Unwinding
+            // Field-Centric Unwinding
+            double currentHeading = otos.getPosition().h;
+            double headingDelta = currentHeading - unwindStartHeading;
+            double dynamicTarget = unwindTargetAngle - headingDelta;
+
+            turnToAngle(dynamicTarget);
+
+            if (Math.abs(getTurretAngle() - dynamicTarget) < 5.0) {
+                currentState = TurretState.TRACKING;
+                timer.reset();
+            }
+            return;
+        }
+
+        // Normul jrrrking logic
         output = Math.max(-maxPower, Math.min(maxPower, output));
+
+        // Soft or HARD limit check ya know?
+        int currentPos = turretMotor.getCurrentPosition();
+        boolean hitMax = (currentPos > TURRET_MAX_TICKS && -output > 0);
+        boolean hitMin = (currentPos < TURRET_MIN_TICKS && -output < 0);
+
+        if (hitMax || hitMin) {
+            output = 0;
+
+            // Ong the other side is reachable!!
+            double currentAngle = getTurretAngle();
+            double alternativeAngle = hitMax ? (currentAngle - 360) : (currentAngle + 360);
+
+            // Who decided that!?
+            double altTicks = alternativeAngle * TICKS_PER_DEGREE;
+            if (altTicks >= TURRET_MIN_TICKS && altTicks <= TURRET_MAX_TICKS) {
+                currentState = TurretState.UNWINDING;
+                unwindTargetAngle = alternativeAngle;
+                unwindStartHeading = otos.getPosition().h; // Capture start heading
+                return; 
+            }
+        }
 
         // lowkey, if it's backwards, just reverse the output!!
         turretMotor.setPower(-output);
@@ -189,11 +293,11 @@ public class AutoShooter {
         lastOutput = output;
 
         /*
-        Have you ever heard the tragedy of Darth Plagueis the rizzler?
+        Have you heard the tragedy of Darth Plagueis the rizzler?
         No,
         I thought so, it's not a story the Betas' would tell you.
-        He was a mog lord of the sigmas.
-        It is said that he could influence the betas' to... show their gyats...
+        Plagueis was a mog lord of the sigmas.
+        He was so powerful that, it is said that he could influence the betas' to... show their gyats...
         He... Could actually rizz up Livvy Dune?!?
         He was so powerful that... the only thing he was afraid of was... losing his rizz.
         Which in the end he did...
@@ -201,8 +305,46 @@ public class AutoShooter {
         Not. From. A Beta...
          */
 
-        leftShooter.setPower(output);
+//        leftShooter.setPower(output);
         rightShooter.setPower(output);
+    }
+
+    public double getTurretAngle() {
+        return turretMotor.getCurrentPosition() / TICKS_PER_DEGREE;
+    }
+
+    public void turnToAngle(double targetAngle) {
+
+        // SOOOo... I just realized that using RUN_TO_POSITION with my own PID and the FTC one is going to basically ruin things.
+        // So i'm basically just making my own new PID for new things.
+        double currentAngle = getTurretAngle();
+
+        double error = targetAngle - currentAngle;
+        while (error > 180) error -= 360;
+        while (error < -180) error += 360;
+
+        double dtSeconds = timer.seconds();
+        timer.reset();
+        if (dtSeconds <= 0) dtSeconds = 0.001;
+
+        integralSum += error * dtSeconds;
+        double maxIntegral = 1.0; // tune as needed yuh?
+        integralSum = Math.max(-maxIntegral, Math.min(maxIntegral, integralSum));
+
+        double derivative = (error - lastError) / dtSeconds;
+        lastError = error;
+
+        double output = kP * error + kI * integralSum + kD * derivative;
+
+        double delta = output - lastOutput;
+        if (Math.abs(delta) > maxDeltaPower) {
+            output = lastOutput + Math.signum(delta) * maxDeltaPower;
+        }
+        lastOutput = output;
+
+        output = Math.max(-maxPower, Math.min(maxPower, output));
+
+        turretMotor.setPower(output);
     }
 }
 

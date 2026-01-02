@@ -29,9 +29,9 @@ public class FTCSwerveDrive {
     double BL_OFFSET = 0.0;
     double BR_OFFSET = 0.0;
 
-    double kP = 0.02;
+    double kP = 1.0;
     double kI = 0.0;
-    double kD = 0.002;
+    double kD = 0.3;
     double kF = 0.0005;
 
     final double GEARBOX_RATIO = 32.0f / 24.0f;
