@@ -1,10 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -13,60 +12,41 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class FTCSwerveDrive {
 
     DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
-    CRServo frontLeftServo, backLeftServo, frontRightServo, backRightServo;
+    Servo frontLeftServo, backLeftServo, frontRightServo, backRightServo;
     AnalogInput frontLeftAnalog, backLeftAnalog, frontRightAnalog, backRightAnalog;
-
-    PIDController frPID, flPID, rlPID, rrPID;
-    ElapsedTime angleTimer = new ElapsedTime();
 
 //    SparkFunOTOS otos;
 
     final double L = 0.98;
     final double W = 1.0;
 
-    double FL_OFFSET = 0.0; // Test these offsets LMAO
-    double FR_OFFSET = 0.0;
-    double BL_OFFSET = 0.0;
-    double BR_OFFSET = 0.0;
-
-    double kP = 1.0;
-    double kI = 0.0;
-    double kD = 0.3;
-    double kF = 0.0005;
-
-    final double GEARBOX_RATIO = 32.0f / 24.0f;
-
-    double minServoPower = 0.03;
-
+    // Servo offsets - adjust these to calibrate the "zero" position of each wheel
+    double FL_SERVO_OFFSET = 0.0;
+    double FR_SERVO_OFFSET = 0.0;
+    double BL_SERVO_OFFSET = 0.0;
+    double BR_SERVO_OFFSET = 0.0;
 
     double lastTargetFR = 0, lastTargetFL = 0, lastTargetRL = 0, lastTargetRR = 0;
 
     public void init(HardwareMap hwMap) {
         frontLeftMotor  = hwMap.get(DcMotorEx.class, "frontLeftMotor");
-        frontLeftServo  = hwMap.get(CRServo.class,     "frontLeftServo");
+        frontLeftServo  = hwMap.get(Servo.class, "frontLeftServo");
         frontLeftAnalog = hwMap.get(AnalogInput.class, "frontLeftAnalog");
 
         frontRightMotor = hwMap.get(DcMotorEx.class, "frontRightMotor");
-        frontRightServo = hwMap.get(CRServo.class,     "frontRightServo");
+        frontRightServo = hwMap.get(Servo.class, "frontRightServo");
         frontRightAnalog = hwMap.get(AnalogInput.class, "frontRightAnalog");
 
         backRightMotor  = hwMap.get(DcMotorEx.class, "backRightMotor");
-        backRightServo  = hwMap.get(CRServo.class,     "backRightServo");
+        backRightServo  = hwMap.get(Servo.class, "backRightServo");
         backRightAnalog = hwMap.get(AnalogInput.class, "backRightAnalog");
 
         backLeftMotor   = hwMap.get(DcMotorEx.class, "backLeftMotor");
-        backLeftServo   = hwMap.get(CRServo.class,     "backLeftServo");
+        backLeftServo   = hwMap.get(Servo.class, "backLeftServo");
         backLeftAnalog  = hwMap.get(AnalogInput.class, "backLeftAnalog");
 
 //        otos = hwMap.get(SparkFunOTOS.class, "otos");
 //        otos.initialize();
-
-        frPID = new PIDController(kP, kI, kD, kF);
-        flPID = new PIDController(kP, kI, kD, kF);
-        rlPID = new PIDController(kP, kI, kD, kF);
-        rrPID = new PIDController(kP, kI, kD, kF);
-
-        angleTimer.reset();
     }
 
 //    private void configureOtos() {
@@ -89,7 +69,7 @@ public class FTCSwerveDrive {
 
 //        SparkFunOTOS.Pose2D currentPose = otos.getPosition();
 //        double heading_rad = Math.toRadians(currentPose.h);
-            double heading_rad = Math.toRadians(0);
+        double heading_rad = Math.toRadians(0);
 
 
         double x_cmd = x_cmd_field * Math.cos(heading_rad) + y_cmd_field * Math.sin(heading_rad);
@@ -109,10 +89,10 @@ public class FTCSwerveDrive {
         double y_rr = y_cmd + turn_cmd * L;
         double x_rr = x_cmd - turn_cmd * W;
 
-        double speed_fr = Math.hypot(x_fr, y_fr);
-        double speed_fl = Math.hypot(x_fl, y_fl);
-        double speed_rl = Math.hypot(x_rl, y_rl);
-        double speed_rr = Math.hypot(x_rr, y_rr);
+        double speed_fr = Math.hypot(y_fr, x_fr);
+        double speed_fl = Math.hypot(y_fr, x_fr);
+        double speed_rl = Math.hypot(y_rl, x_rl);
+        double speed_rr = Math.hypot(y_rr, x_rr);
 
         double angle_fr = Math.toDegrees(Math.atan2(x_fr, y_fr));
         double angle_fl = Math.toDegrees(Math.atan2(x_fl, y_fl));
@@ -124,126 +104,77 @@ public class FTCSwerveDrive {
             speed_fr /= max; speed_fl /= max; speed_rl /= max; speed_rr /= max;
         }
 
-        double current_fr = getAngle(frontRightAnalog, FR_OFFSET);
-        double current_fl = getAngle(frontLeftAnalog, FL_OFFSET);
-        double current_rl = getAngle(backLeftAnalog, BL_OFFSET);
-        double current_rr = getAngle(backRightAnalog, BR_OFFSET);
+        double[] opt_fr = optimize(angle_fr, speed_fr);
+        double[] opt_fl = optimize(angle_fl, speed_fl);
+        double[] opt_rl = optimize(angle_rl, speed_rl);
+        double[] opt_rr = optimize(angle_rr, speed_rr);
 
-        double[] opt_fr = optimize(angle_fr, speed_fr, current_fr);
-        double[] opt_fl = optimize(angle_fl, speed_fl, current_fl);
-        double[] opt_rl = optimize(angle_rl, speed_rl, current_rl);
-        double[] opt_rr = optimize(angle_rr, speed_rr, current_rr);
-
-        frontRightMotor.setPower(opt_fr[1]);
+        frontRightMotor.setPower(opt_fr[1]); // We keep optimize because lowkey, you only need 180 degrees of rotation...
         frontLeftMotor.setPower(opt_fl[1]);
         backLeftMotor.setPower(opt_rl[1]);
         backRightMotor.setPower(opt_rr[1]);
 
-        lastTargetFR = opt_fr[0];
+        frontRightServo.setPosition(angleToServoPosition(opt_fr[0], FR_SERVO_OFFSET)); // Set the servo position and take the offset.
+        frontLeftServo.setPosition(angleToServoPosition(opt_fl[0], FL_SERVO_OFFSET));
+        backLeftServo.setPosition(angleToServoPosition(opt_rl[0], BL_SERVO_OFFSET));
+        backRightServo.setPosition(angleToServoPosition(opt_rr[0], BR_SERVO_OFFSET));
+
+        lastTargetFR = opt_fr[0]; // To prevent violent 0 snapping, we just set the position to the last one.
         lastTargetFL = opt_fl[0];
         lastTargetRL = opt_rl[0];
         lastTargetRR = opt_rr[0];
-
-        runPID(opt_fr[0], opt_fl[0], opt_rl[0], opt_rr[0]);
     }
 
-    private void stopDrive() {
+    private void stopDrive() { // Stop the drive.
         frontLeftMotor.setPower(0);
         frontRightMotor.setPower(0);
         backLeftMotor.setPower(0);
         backRightMotor.setPower(0);
 
-        runPID(lastTargetFR, lastTargetFL, lastTargetRL, lastTargetRR);
+        // Hold the last target positions when stopped
+        frontRightServo.setPosition(angleToServoPosition(lastTargetFR, FR_SERVO_OFFSET));
+        frontLeftServo.setPosition(angleToServoPosition(lastTargetFL, FL_SERVO_OFFSET));
+        backLeftServo.setPosition(angleToServoPosition(lastTargetRL, BL_SERVO_OFFSET));
+        backRightServo.setPosition(angleToServoPosition(lastTargetRR, BR_SERVO_OFFSET));
     }
 
-    private void runPID(double tFR, double tFL, double tRL, double tRR) {
-        double dt = angleTimer.seconds();
-        angleTimer.reset();
-        if (dt < 0.001) dt = 0.001;
+    // Little bit different from the last one. We still use offset, but instead clip it to 90 degrees because we only need to turn 180.
+    private double angleToServoPosition(double angleDeg, double offset) {
+        double adjustedAngle = angleDeg + offset;
 
-        double velFR = normalizeAngle(tFR - lastTargetFR) / dt;
-        double velFL = normalizeAngle(tFL - lastTargetFL) / dt;
-        double velRL = normalizeAngle(tRL - lastTargetRL) / dt;
-        double velRR = normalizeAngle(tRR - lastTargetRR) / dt;
+        adjustedAngle = Range.clip(adjustedAngle, -90.0, 90.0);
 
-        frontRightServo.setPower(
-                frPID.calculate(tFR, getAngle(frontRightAnalog, FR_OFFSET), velFR)
-        );
-        frontLeftServo.setPower(
-                flPID.calculate(tFL, getAngle(frontLeftAnalog, FL_OFFSET), velFL)
-        );
-        backLeftServo.setPower(
-                rlPID.calculate(tRL, getAngle(backLeftAnalog, BL_OFFSET), velRL)
-        );
-        backRightServo.setPower(
-                rrPID.calculate(tRR, getAngle(backRightAnalog, BR_OFFSET), velRR)
-        );
-
-        lastTargetFR = tFR;
-        lastTargetFL = tFL;
-        lastTargetRL = tRL;
-        lastTargetRR = tRR;
+        return (adjustedAngle + 90.0) / 180.0;
     }
 
-    private double getAngle(AnalogInput sensor, double offset) {
+
+    public double getAngle(AnalogInput sensor, double offset) {
+        // The angle shall be gotten?
         double raw = (sensor.getVoltage() / 3.3) * 360.0;
-
-        double wheelAngle = raw / GEARBOX_RATIO;
-
-        return normalizeAngle(wheelAngle - offset);
+        return normalizeAngle(raw - offset);
     }
 
+    // Regular normalize angle function in case we need it
     private double normalizeAngle(double angle) {
         while (angle > 180.0) angle -= 360.0;
         while (angle < -180.0) angle += 360.0;
         return angle;
     }
 
-    private double[] optimize(double target, double speed, double current) {
-        double delta = normalizeAngle(target - current);
-        if (Math.abs(delta) > 90.0) {
-            target = normalizeAngle(target - Math.signum(delta) * 180.0);
+
+    // optimizes the target angle and speed for MAXIUMUM TWEAK!!
+    private double[] optimize(double target, double speed) {
+        target = normalizeAngle(target);
+
+        if (target > 90.0) {
+            target = target - 180.0;
+            speed *= -1.0;
+        } else if (target < -90.0) {
+            target = target + 180.0;
             speed *= -1.0;
         }
+
         return new double[]{target, speed};
     }
-
-    public class PIDController {
-        private double kP, kI, kD, kF;
-        private double lastError = 0;
-        private ElapsedTime timer = new ElapsedTime();
-
-        public PIDController(double kP, double kI, double kD, double kF) {
-            this.kP = kP;
-            this.kI = kI;
-            this.kD = kD;
-            this.kF = kF;
-            timer.reset();
-        }
-
-        public double calculate(double target, double current, double targetVel) {
-            double error = normalizeAngle(target - current);
-            double dt = timer.seconds();
-            timer.reset();
-
-            if (dt < 0.001) dt = 0.001;
-
-            double pTerm = error * kP;
-            double derivative = (error - lastError) / dt;
-            double dTerm = derivative * kD;
-
-            // PLEASE SPEED I NEED THIS!!!
-            // MY FEED IS KINDA FORWARDLESS!!!
-            double fTerm = targetVel * kF;
-
-            lastError = error;
-
-            double output = pTerm + dTerm + fTerm;
-
-            if (Math.abs(error) < 0.5) return 0;
-
-            output += Math.signum(output) * minServoPower;
-            return Range.clip(output, -1.0, 1.0);
-        }
-    }
 }
+

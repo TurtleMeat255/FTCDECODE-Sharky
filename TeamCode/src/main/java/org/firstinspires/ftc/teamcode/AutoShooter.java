@@ -21,6 +21,14 @@ public class AutoShooter {
     ElapsedTime timer = new ElapsedTime();
     ElapsedTime dt = new ElapsedTime();
     ElapsedTime shootdt = new ElapsedTime();
+
+    public enum ShootState {
+        FAR_LOB_SHOT,
+        FAR_HARD_SHOT,
+        MEDIUM_SHOT,
+        CLOSE_SHOT,
+        NO_SHOT,
+    }
     double integralSum = 0.0;
     double lastError = 0.0;
     double kP = 0.02;
@@ -39,7 +47,7 @@ public class AutoShooter {
     double shootlastError = 0.0;
 
 
-    boolean randomVariable = false;
+    double hoodPosition = 0.2;
 
     double filterStrength = 0.7; // we can tune this to make it smooth & slow, or kinda FREAKY & fast.
     double deadband = 0.67; // This just says if the error is less than this. Just don't bother moving. It's going to save power and still maintain accuracy.
@@ -56,6 +64,14 @@ public class AutoShooter {
     final double TICKS_PER_REV = 537.7;
     final double GEAR_RATIO = 5.0;
     final double TICKS_PER_DEGREE = (TICKS_PER_REV * GEAR_RATIO) / 360.0;
+
+    // Shooter PLUH
+    final double COUNTS_PER_MOTOR_REV = 28.0;
+    final double GEAR_REDUCTION = 1;
+    final double COUNTS_PER_WHEEL_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION;
+
+    private AutoShooter.ShootState currentHoodState = AutoShooter.ShootState.NO_SHOT;
+
 
     enum TurretState {
         TRACKING,
@@ -81,6 +97,38 @@ public class AutoShooter {
         rightHood = hwMap.get(Servo.class, "rightHood"); // Exp Port 3
 
         timer.reset();
+    }
+
+    public void update(boolean isShootButtonPressed, boolean isHardShotPressed) {
+
+        double currentDistance = limeLight.GetDistance();
+
+        final double CLOSE_LIMIT = 40.0;
+        final double MEDIUM_LIMIT = 55.0;
+
+        if (isShootButtonPressed) {
+
+            if (currentDistance > 0 && currentDistance < CLOSE_LIMIT) {
+                currentHoodState = AutoShooter.ShootState.CLOSE_SHOT;
+            } else if (currentDistance >= CLOSE_LIMIT && currentDistance < MEDIUM_LIMIT) {
+                currentHoodState = AutoShooter.ShootState.MEDIUM_SHOT;
+            } else if (currentDistance >= MEDIUM_LIMIT) {
+
+                if (isHardShotPressed) {
+                    currentHoodState = AutoShooter.ShootState.FAR_HARD_SHOT;
+                } else {
+                    currentHoodState = AutoShooter.ShootState.FAR_LOB_SHOT;
+                }
+            } else {
+
+                currentHoodState = AutoShooter.ShootState.NO_SHOT;
+            }
+        } else {
+
+            currentHoodState = AutoShooter.ShootState.NO_SHOT;
+        }
+
+        updateShooter();
     }
 
     public void turnTurretBlue() {
@@ -258,10 +306,9 @@ public class AutoShooter {
         turretMotor.setPower(-output);
     }
     public void flyWheelRPM(double targetRPM) {
-        double currentRPM = (leftShooter.getVelocity() + rightShooter.getVelocity()) / 2.0;
+        double currentRPM = (rightShooter.getVelocity()) / 2.0;
 
         double dtSeconds = shootdt.seconds();
-        shootdt.reset();
         if (dtSeconds <= 0) dtSeconds = 0.001;
 
         double shootError = targetRPM - currentRPM;
@@ -291,6 +338,7 @@ public class AutoShooter {
             output = lastOutput + Math.signum(delta) * maxDeltaPower;
         }
         lastOutput = output;
+        shootdt.reset();
 
         /*
         Have you heard the tragedy of Darth Plagueis the rizzler?
@@ -305,7 +353,6 @@ public class AutoShooter {
         Not. From. A Beta...
          */
 
-//        leftShooter.setPower(output);
         rightShooter.setPower(output);
     }
 
@@ -345,6 +392,42 @@ public class AutoShooter {
         output = Math.max(-maxPower, Math.min(maxPower, output));
 
         turretMotor.setPower(output);
+    }
+
+
+    public void updateShooter() {
+        switch(currentHoodState) {
+            case FAR_LOB_SHOT:
+                SetHoodPosition(0.40);
+
+                break;
+
+            case FAR_HARD_SHOT:
+                SetHoodPosition(0.2);
+
+                break;
+
+            case MEDIUM_SHOT:
+                SetHoodPosition(0.30);
+
+                break;
+
+            case CLOSE_SHOT:
+                SetHoodPosition(0.40);
+
+                break;
+
+            case NO_SHOT:
+                SetHoodPosition(0.30);
+                break;
+        }
+    }
+
+    public void SetHoodPosition(double value)
+    {
+        double position = value;
+        leftHood.setPosition(position);
+        rightHood.setPosition(position);
     }
 }
 
