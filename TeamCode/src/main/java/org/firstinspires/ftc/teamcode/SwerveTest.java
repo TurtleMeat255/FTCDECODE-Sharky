@@ -47,10 +47,8 @@ public class SwerveTest extends OpMode {
     double FLkD = 0.0;
     double FLkF = 0.0;
 
-    double inputAngle = 0;
-    double turnSpeedDeg = 60;
 
-    double FL_OFFSET = 0.0;
+    double FL_OFFSET = 10.0;
     double FR_OFFSET = 0.0;
     double BL_OFFSET = 0.0;
     double BR_OFFSET = 0.0;
@@ -175,6 +173,11 @@ public class SwerveTest extends OpMode {
         runPID(lastTargetFL);
     }
 
+    boolean flUnwinding = false;
+    boolean frUnwinding = false;
+    boolean rlUnwinding = false;
+    boolean rrUnwinding = false;
+
     private void runPID(double tFL) {
         double dt = angleTimer.seconds();
         angleTimer.reset();
@@ -196,6 +199,42 @@ public class SwerveTest extends OpMode {
         // double velFR = normalizeAngle(servoTargetFR - (lastTargetFR * GEARBOX_RATIO)) / dt;
         // double velRL = normalizeAngle(servoTargetRL - (lastTargetRL * GEARBOX_RATIO)) / dt;
         // double velRR = normalizeAngle(servoTargetRR - (lastTargetRR * GEARBOX_RATIO)) / dt;
+
+        if (getRawAngle(frontLeftAnalog, FL_OFFSET) > 360)
+        {
+            flUnwinding = true;
+        }
+        if (getRawAngle(frontRightAnalog, FR_OFFSET) > 360)
+        {
+            frUnwinding = true;
+        }
+        if (getRawAngle(backLeftAnalog, BL_OFFSET) > 360)
+        {
+            rlUnwinding = true;
+        }
+        if (getRawAngle(backRightAnalog, BR_OFFSET) > 360)
+        {
+            rrUnwinding = true;
+        }
+
+        if (flUnwinding)
+        {
+            servoTargetFL = 0;
+
+            if (Math.abs(getRawAngle(frontLeftAnalog, FL_OFFSET)) < 360))
+        }
+        if (frUnwinding)
+        {
+            servoTargetFR = 0;
+        }
+        if (rlUnwinding)
+        {
+            servoTargetRL = 0;
+        }
+        if (rrUnwinding)
+        {
+            servoTargetRR = 0;
+        }
 
         double powerFL = flPID.calculate(servoTargetFL, currentServoAngleFL, velFL);
         // double powerFR = flPID.calculate(servoTargetFR, currentServoAngleFR, velFR);
@@ -224,9 +263,17 @@ public class SwerveTest extends OpMode {
     private double getAngle(AnalogInput sensor, double offset) {
         double rawAngle = (sensor.getVoltage() / 3.3) * 360.0;
 
-        double wheelAngle = (rawAngle - offset)/ GEARBOX_RATIO;
+        // Apply offset in servo space (before gearbox conversion)
+        double wheelAngle = (rawAngle - offset) / GEARBOX_RATIO;
 
-        return normalizeAngle(wheelAngle - offset);
+        return normalizeAngle(wheelAngle);
+    }
+
+    private double getRawAngle(AnalogInput sensor, double offset) {
+        double rawAngle = (sensor.getVoltage() / 3.3) * 360.0;
+
+        // Apply offset in servo space (before gearbox conversion)
+        return (rawAngle - offset) / GEARBOX_RATIO;
     }
 
     private double normalizeAngle(double angle) {
@@ -276,7 +323,7 @@ public class SwerveTest extends OpMode {
 
             double output = pTerm + dTerm + fTerm;
 
-            if (Math.abs(error) < 3.00) return 0;
+            if (Math.abs(error) < 15.00) return 0;
 
             output += Math.signum(output) * minServoPower;
             return Range.clip(output, -1.0, 1.0);

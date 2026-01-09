@@ -17,10 +17,8 @@ public class AutoShooter {
     Servo leftHood = null;
     Servo rightHood = null;
 
-    double lastRPMERROR = 0;
     ElapsedTime timer = new ElapsedTime();
     ElapsedTime dt = new ElapsedTime();
-    ElapsedTime shootdt = new ElapsedTime();
 
     public enum ShootState {
         FAR_LOB_SHOT,
@@ -35,16 +33,7 @@ public class AutoShooter {
     double kI = 0.0001;
     double kD = 0.0015;
 
-    // make my feedforward!
-    double kV = 1.0 / 6000.0;
-    double kS = 0.0;   // Usually smol
-    double kA = 0.0;
 
-    double shootkP = 0.02;
-    double shootkI = 0.0001;
-    double shootkD = 0.0015;
-    double shootintegralSum = 0.0;
-    double shootlastError = 0.0;
 
 
     double hoodPosition = 0.2;
@@ -87,11 +76,12 @@ public class AutoShooter {
 
         turretMotor = hwMap.get(DcMotorEx.class, "turretMotor"); // Ctrl Hub 3
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 //        leftShooter = hwMap.get(DcMotorEx.class, "leftShooter");
         rightShooter = hwMap.get(DcMotorEx.class, "rightShooter"); // Exp Motor Port 3
+        rightShooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightShooter.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(0.01, 0, 0, 0));
 
         leftHood = hwMap.get(Servo.class, "leftHood"); // Exp Port 2
         rightHood = hwMap.get(Servo.class, "rightHood"); // Exp Port 3
@@ -144,7 +134,6 @@ public class AutoShooter {
         }
 
         double dt = timer.seconds();
-        timer.reset();
         if (dt <= 0) dt = 0.001;
 
         double filteredTx = filterStrength * lastFilteredTx + (1 - filterStrength) * tx;
@@ -173,6 +162,7 @@ public class AutoShooter {
             output = lastOutput + Math.signum(delta) * maxDeltaPower;
         }
         lastOutput = output;
+        timer.reset();
 
         // Maybe unwind?
         if (currentState == TurretState.UNWINDING) {
@@ -217,7 +207,7 @@ public class AutoShooter {
         // lowkey, if it's backwards, just reverse the output!!
         turretMotor.setPower(-output);
     }
-    public void turnTurretRED() {
+    public void turnTurretRed() {
         double tx = limeLight.GetTX();
 
         // should make it just stop if it sees wrong april tag
@@ -230,7 +220,6 @@ public class AutoShooter {
         }
 
         double dt = timer.seconds();
-        timer.reset();
         if (dt <= 0) dt = 0.001;
 
         double filteredTx = filterStrength * lastFilteredTx + (1 - filterStrength) * tx;
@@ -259,6 +248,7 @@ public class AutoShooter {
             output = lastOutput + Math.signum(delta) * maxDeltaPower;
         }
         lastOutput = output;
+        timer.reset();
 
         // UNWIND HIS SHIIIII
         if (currentState == TurretState.UNWINDING) {
@@ -305,55 +295,18 @@ public class AutoShooter {
         // lowkey, if it's backwards, just reverse the output!!
         turretMotor.setPower(-output);
     }
-    public void flyWheelRPM(double targetRPM) {
-        double currentRPM = (rightShooter.getVelocity()) / 2.0;
 
-        double dtSeconds = shootdt.seconds();
-        if (dtSeconds <= 0) dtSeconds = 0.001;
+    public void setFlywheelRPM(double targetRPM) {
+        double ticksPerSecond = (targetRPM / 60.0) * COUNTS_PER_WHEEL_REV;
+        rightShooter.setVelocity(ticksPerSecond);
+    }
 
-        double shootError = targetRPM - currentRPM;
+    public double getFlywheelRPM() {
+        return (rightShooter.getVelocity() / COUNTS_PER_WHEEL_REV) * 60.0;
+    }
 
-        shootintegralSum += shootError * dtSeconds;
-        double maxIntegral = 1000; // tune this onskibidi
-        if (shootintegralSum > maxIntegral) shootintegralSum = maxIntegral;
-        if (shootintegralSum < -maxIntegral) shootintegralSum = -maxIntegral;
-
-        // Derivative
-        double derivative = (shootError - shootlastError) / dtSeconds;
-        shootlastError = shootError;
-
-        double pid = shootkP * shootError + shootkI * shootintegralSum + shootkD * derivative;
-
-        // Please SPEED I NEED THIS!!
-        // My forward is kinda feedless!!!
-        double feedForward = kS + kV * targetRPM;
-
-        double output = pid + feedForward;
-
-
-        output = Math.max(0, Math.min(maxPower, output));
-
-        double delta = output - lastOutput;
-        if (Math.abs(delta) > maxDeltaPower) {
-            output = lastOutput + Math.signum(delta) * maxDeltaPower;
-        }
-        lastOutput = output;
-        shootdt.reset();
-
-        /*
-        Have you heard the tragedy of Darth Plagueis the rizzler?
-        No,
-        I thought so, it's not a story the Betas' would tell you.
-        Plagueis was a mog lord of the sigmas.
-        He was so powerful that, it is said that he could influence the betas' to... show their gyats...
-        He... Could actually rizz up Livvy Dune?!?
-        He was so powerful that... the only thing he was afraid of was... losing his rizz.
-        Which in the end he did...
-        Where could you learn this power?
-        Not. From. A Beta...
-         */
-
-        rightShooter.setPower(output);
+    public boolean isFlywheelAtSpeed(double targetRPM, double tolerance) {
+        return Math.abs(getFlywheelRPM() - targetRPM) < tolerance;
     }
 
     public double getTurretAngle() {
@@ -399,26 +352,27 @@ public class AutoShooter {
         switch(currentHoodState) {
             case FAR_LOB_SHOT:
                 SetHoodPosition(0.40);
-
+                // setFlywheelRPM(3150);
                 break;
 
             case FAR_HARD_SHOT:
                 SetHoodPosition(0.2);
-
+                // setFlywheelRPM(3100);
                 break;
 
             case MEDIUM_SHOT:
                 SetHoodPosition(0.30);
-
+                // setFlywheelRPM(3000);
                 break;
 
             case CLOSE_SHOT:
                 SetHoodPosition(0.40);
-
+                // setFlywheelRPM(2700);
                 break;
 
             case NO_SHOT:
                 SetHoodPosition(0.30);
+                // setFlywheelRPM(0);
                 break;
         }
     }
