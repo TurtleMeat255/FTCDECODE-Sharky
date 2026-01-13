@@ -539,10 +539,10 @@ public class SwerveTest extends OpMode {
     double inputAngle = 0;
     double turnSpeedDeg = 60;
 
-    double FL_OFFSET = 6; // Test these offsets LMAO
-    double FR_OFFSET = -6.4;
-    double BL_OFFSET = 19;
-    double BR_OFFSET = -13.4;
+    double FL_OFFSET = 0; // Test these offsets LMAO
+    double FR_OFFSET = 0;
+    double BL_OFFSET = 0;
+    double BR_OFFSET = 0;
 
 
     final double GEARBOX_RATIO = 1 / (36.0f / 24.0f);
@@ -623,7 +623,7 @@ public class SwerveTest extends OpMode {
     double unwindDirectionRR = 1;
 
     // Unwind servo power (slow and steady... OR FREAKY AND FAST!!!)
-    double UNWIND_POWER = 0.3;
+    double UNWIND_POWER = 0.2;
 
     // Threshold for detecting Buffalo Chicken Wrap (how close to 0° or 360° triggers recalibration)
     double WRAP_THRESHOLD = 20;
@@ -748,10 +748,10 @@ public class SwerveTest extends OpMode {
         telemetry.addData("RL Speed", blSpeed);
         telemetry.addData("RR Speed", brSpeed);
 
-        telemetry.addData("FL Angle", angle_fl);
-        telemetry.addData("FR Angle", angle_fr);
-        telemetry.addData("RL Angle", angle_rl);
-        telemetry.addData("RR Angle", angle_rr);
+        telemetry.addData("FL Angle", getAngle(frontLeftAnalog, FL_OFFSET));
+        telemetry.addData("FR Angle", getAngle(frontRightAnalog, FR_OFFSET));
+        telemetry.addData("RL Angle", getAngle(backLeftAnalog, BL_OFFSET));
+        telemetry.addData("RR Angle", getAngle(backRightAnalog, BR_OFFSET));
 //        telemetry.addData("FL Target", "%.1f°", lastTargetFL);;
         telemetry.update();
     }
@@ -825,25 +825,25 @@ public class SwerveTest extends OpMode {
             boolean stillUnwinding = processUnwind(frontLeftServo, frontLeftAnalog, FL_OFFSET,
                     unwindDirectionFL, lastRawFL, 0);
             if (!stillUnwinding) stateFL = SwerveState.MAIN_STATE;
-            anyUnwinding = true;
+            else anyUnwinding = true;
         }
         if (stateFR == SwerveState.UNWINDING_STATE) {
             boolean stillUnwinding = processUnwind(frontRightServo, frontRightAnalog, FR_OFFSET,
                     unwindDirectionFR, lastRawFR, 1);
             if (!stillUnwinding) stateFR = SwerveState.MAIN_STATE;
-            anyUnwinding = true;
+            else anyUnwinding = true;
         }
         if (stateRL == SwerveState.UNWINDING_STATE) {
             boolean stillUnwinding = processUnwind(backLeftServo, backLeftAnalog, BL_OFFSET,
                     unwindDirectionRL, lastRawRL, 2);
             if (!stillUnwinding) stateRL = SwerveState.MAIN_STATE;
-            anyUnwinding = true;
+            else anyUnwinding = true;
         }
         if (stateRR == SwerveState.UNWINDING_STATE) {
             boolean stillUnwinding = processUnwind(backRightServo, backRightAnalog, BR_OFFSET,
                     unwindDirectionRR, lastRawRR, 3);
             if (!stillUnwinding) stateRR = SwerveState.MAIN_STATE;
-            anyUnwinding = true;
+            else anyUnwinding = true;
         }
 
         // If any module is still unwinding, stop the drive motors and skip normal swerve... NOOOOO
@@ -962,10 +962,15 @@ public class SwerveTest extends OpMode {
 
         angleTimer.reset();
 
-        frontLeftServo.setPower(powerFL);
-        frontRightServo.setPower(powerFR);
-        backLeftServo.setPower(powerRL);
-        backRightServo.setPower(powerRR);
+//        frontLeftServo.setPower(powerFL);
+//        frontRightServo.setPower(powerFR);
+//        backLeftServo.setPower(powerRL);
+//        backRightServo.setPower(powerRR);
+
+        frontLeftServo.setPower(gamepad1.left_stick_x);
+        frontRightServo.setPower(0);
+        backLeftServo.setPower(0);
+        backRightServo.setPower(0);
 
         lastTargetFL = tFL;
         lastTargetFR = tFR;
